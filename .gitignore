@@ -1,7 +1,14 @@
+venv
 .venv
+
 __pycache__
 db.sqlite3
+
+__pycache__/
+*.pyc
 
 
 # IDEs
 .idea/
+.vscode/
+

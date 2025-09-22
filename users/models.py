@@ -53,14 +53,15 @@ class Cliente(models.Model):
         db_column='id_usuario',
         related_name='cliente'
     )
+    excliente = models.BooleanField(db_column='excliente', default=False)
+    fecha_creacion = models.DateTimeField(db_column='fecha_creacion', auto_now_add=True)
     saldo = models.DecimalField(
         db_column='saldo',
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
+        default=0
     )
-    excliente = models.BooleanField(db_column='excliente', default=False)
-    fecha_creacion = models.DateTimeField(db_column='fecha_creacion', auto_now_add=True)
 
     class Meta:
         db_table = '"CLIENTE"'

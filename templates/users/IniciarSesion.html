@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Iniciar Sesión</title>
+</head>
+<body>
+  <h1>Iniciar Sesión</h1>
+
+  {% if errors %}
+    <div>
+      <strong>Errores:</strong>
+      <pre>{{ errors }}</pre>
+    </div>
+  {% endif %}
+
+  <form method="post" action="">
+    {% csrf_token %}
+    <div>
+      <label>Nombre de usuario</label><br>
+      <input type="text" name="nombre" maxlength="10" required>
+    </div>
+    <div>
+      <label>Contraseña</label><br>
+      <input type="password" name="contrasena" required>
+    </div>
+    <div style="margin-top: 8px;">
+      <button type="submit">Iniciar sesión</button>
+      <a href="{% url 'users:registrarse' %}">
+        <button type="button">Ir a Registrarse</button>
+      </a>
+    </div>
+  </form>
+</body>
+</html>

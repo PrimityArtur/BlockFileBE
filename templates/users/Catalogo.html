@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Catálogo</title>
+</head>
+<body>
+  <h1>Catalogo</h1>
+  <p>Bienvenido, {{ request.session.usuario_nombre|default:"usuario" }}.</p>
+  <p>Tipo: {{ request.session.usuario_tipo|default:"desconocido" }}</p>
+</body>
+</html>

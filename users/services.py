@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from .models import Usuario, Cliente, Administrador
+from core.models import Usuario, Cliente, Administrador
 from . import repository as repo
 
 class DomainError(Exception):

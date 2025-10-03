@@ -5,11 +5,10 @@ from django.db.models import Q, Avg, Prefetch
 from django.core.paginator import Paginator
 from django.db import transaction
 
-from .models import (
+from core.models import (
     Producto, DetallesProducto, Autor, Categoria, ImagenProducto, CalificacionProducto
 )
-
-PER_PAGE_DEFAULT = 20
+from core.utils import PER_PAGE
 
 def _base_queryset():
     return (
@@ -23,7 +22,7 @@ def _base_queryset():
 def listar_pagina(
     *,
     page:int = 1,
-    per_page:int = PER_PAGE_DEFAULT,
+    per_page:int = PER_PAGE,
     f_id: Optional[int] = None,
     f_nombre: Optional[str] = None,
     f_autor: Optional[str] = None,

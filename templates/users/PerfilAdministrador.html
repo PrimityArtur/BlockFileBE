@@ -6,7 +6,9 @@
 </head>
 <body>
   <h1>Perfil del Administrador</h1>
-  <a class="btn" href="{% url 'products:gestion' %}">Gestión de productos</a>
+  <a class="btn" href="{% url 'gestorProductos:gestion' %}">Gestión de productos</a>
+  <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Gestión de categorias</a>
+  <a class="btn" href="{% url 'gestorUsuarios:gestion' %}">Gestión de Usuarios</a>
 
   {% if errors %}
     <div>

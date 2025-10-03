@@ -4,11 +4,10 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.middleware.csrf import get_token
 import json
 
-from .models import ImagenProducto
+from core.models import ImagenProducto
 from . import serializer as serial
 from . import services as serv
-
-PER_PAGE = 20
+from core.utils import PER_PAGE
 
 
 @require_http_methods(["GET"])

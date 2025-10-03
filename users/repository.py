@@ -1,5 +1,5 @@
 from django.db import connection
-from .models import Usuario, Cliente
+from core.models import Usuario, Cliente
 from typing import Optional
 from django.db.models import Q
 

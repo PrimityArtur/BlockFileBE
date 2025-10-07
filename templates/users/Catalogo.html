@@ -5,8 +5,138 @@
   <title>Catálogo</title>
 </head>
 <body>
-  <h1>Catalogo</h1>
-  <p>Bienvenido, {{ request.session.usuario_nombre|default:"usuario" }}.</p>
-  <p>Tipo: {{ request.session.usuario_tipo|default:"desconocido" }}</p>
+    <header>
+        <H1>BlockFile</H1>
+        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Ranking</a>
+        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Perfil</a>
+        <a class="btn" href="{% url 'users:logout'%}">Cerrar Sesión</a>
+    </header>
+
+    <form id="formBuscar" method="get" action="">
+        <span>Buscar por:</span>
+        <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
+        <input type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
+        <input type="text" name="categoria" placeholder="Categoría" value="{{ filtros.categoria }}">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <ul id="tblBody">
+    {% for p in filas %}
+        <li>
+            {% if p.imagen_1_id %}
+                <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}" alt="Imagen de {{ p.nombre }}">
+            {% else %}
+                <span>Sin imagen</span>
+            {% endif %}
+            <div><strong>{{ p.nombre }}</strong></div>
+            <div>Autor: {{ p.autor|default:"-" }}</div>
+            <div>Calificación: {{ p.calificacion_promedio|default:"-" }}</div>
+            <div>{{ p.compras }} compras</div>
+        </li>
+    {% empty %}
+        Sin resultados
+    {% endfor %}
+    </ul>
+
+    <!-- Paginador -->
+    <div id="pager" style="margin-top:10px;">
+        <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+        <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
+        <span>Página {{ page }} de {{ total_pages }}</span>
+        <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;</button>
+        <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último &raquo;</button>
+    </div>
+
+
+    <script>
+        const formBuscar = document.getElementById('formBuscar');
+        function irPagina(p) {
+            if (p < 1) p = 1;
+            buscar(p);
+        }
+
+        function queryParamsFromForm() {
+            const fd = new FormData(formBuscar);
+            const q = new URLSearchParams();
+            for (const [k, v] of fd.entries()) {
+                if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
+            }
+            return q;
+        }
+        const API_LISTAR = "{% url 'catalogoProductos:api_listar' %}";
+        function buscar(page = 1) {
+            const q = queryParamsFromForm();
+            q.set('page', String(page));
+            fetch(`${API_LISTAR}?${q.toString()}`)
+                .then(r => r.json())
+                .then(resp => {
+                    if (!resp.ok) {
+                        alert('Error al listar');
+                        return;
+                    }
+                    renderTabla(resp.rows);
+                    renderPaginador(resp.page, resp.total_pages);
+                })
+                .catch(() => alert('No se pudo obtener la lista'));
+        }
+
+        const IMG_DUMMY = "{% url 'catalogoProductos:api_imagen' 1 %}";
+        const buildImgUrl = id => IMG_DUMMY.replace(/1\/?$/, id);
+        function renderTabla(rows) {
+            const tbody = document.getElementById('tblBody');
+            tbody.innerHTML = '';
+            if (!rows || rows.length === 0) {
+                const cont = document.createElement('div');
+                cont.innerHTML = `<div>Sin resultados</div>`;
+                tbody.appendChild(cont);
+                return;
+            }
+            for (const p of rows) {
+                const li = document.createElement('li');
+                const imgHtml = p.imagen_1_id
+                    ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${esc(p.nombre)}">`
+                    : `<span>Sin imagen</span>`;
+                li.innerHTML = `
+                    ${imgHtml}
+                    <div><strong>${esc(p.nombre)}</strong></div>
+                    <div>Autor: ${esc(p.autor || '-')}</div>
+                    <div>Calificación: ${p.calificacion_promedio ?? '-'}</div>
+                    <div>${p.compras ?? 0} compras</div>
+                `;
+                tbody.appendChild(li);
+            }
+        }
+
+        function esc(s) {
+            return String(s).replace(/[&<>"']/g, m => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
+            ));
+        }
+
+        function renderPaginador(page, total) {
+            const pager = document.getElementById('pager');
+            const disPrim = page <= 1 ? 'disabled' : '';
+            const disAnt  = page <= 1 ? 'disabled' : '';
+            const disSig  = page >= total ? 'disabled' : '';
+            const disUlt  = page >= total ? 'disabled' : '';
+
+            pager.innerHTML = `
+              <button type="button" onclick="irPagina(1)" ${disPrim}>&laquo; Primero</button>
+              <button type="button" onclick="irPagina(${page - 1})" ${disAnt}>&lsaquo; Ant</button>
+              <span>Página ${page} de ${total}</span>
+              <button type="button" onclick="irPagina(${page + 1})" ${disSig}>Sig &rsaquo;</button>
+              <button type="button" onclick="irPagina(${total})" ${disUlt}>Último &raquo;</button>
+            `;
+        }
+
+        formBuscar.addEventListener('submit', (e) => {
+            e.preventDefault();
+            buscar(1);
+        });
+
+    </script>
 </body>
+
 </html>
+

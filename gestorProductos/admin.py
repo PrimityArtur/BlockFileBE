@@ -194,10 +194,10 @@ class DetallesProductoAdmin(admin.ModelAdmin):
 
 @admin.register(CalificacionProducto)
 class CalificacionProductoAdmin(admin.ModelAdmin):
-    readonly_fields = ('fecha',)
+    readonly_fields = ('id_calificacion', 'fecha',)
     list_display = ('producto', 'usuario', 'calificacion', 'fecha')
     list_filter = ('calificacion', 'fecha')
-    search_fields = ('producto__nombre', 'usuario__usuario__nombre_usuario', 'usuario__usuario__correo')
+    search_fields = ('producto__nombre', 'usuario__nombre_usuario', 'usuario__correo')
     ordering = ('-fecha', 'producto', 'usuario')
     date_hierarchy = 'fecha'
     list_per_page = 25
@@ -222,7 +222,7 @@ class ComentarioProductoAdmin(admin.ModelAdmin):
 
 @admin.register(CompraProducto)
 class CompraProductoAdmin(admin.ModelAdmin):
-    readonly_fields = ('fecha',)
+    readonly_fields = ('id_compra_producto', 'fecha',)
     list_display = ('producto', 'usuario', 'fecha')
     list_filter = ('fecha',)
     search_fields = ('producto__nombre', 'usuario__usuario__nombre_usuario', 'usuario__usuario__correo')

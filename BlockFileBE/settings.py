@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'gestorProductos.apps.GestorProductosConfig',
     'gestorCategorias.apps.gestorCategoriasConfig',
+    'catalogoProductos.apps.catalogoProductosConfig',
 ]
 
 MIDDLEWARE = [

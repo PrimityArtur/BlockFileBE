@@ -1,104 +1,104 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Perfil Administrador</title>
+    <meta charset="utf-8">
+    <title>Perfil Administrador</title>
 </head>
 <body>
-  <h1>Perfil del Administrador</h1>
-  <a class="btn" href="{% url 'gestorProductos:gestion' %}">Gestión de productos</a>
-  <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Gestión de categorias</a>
-  <a class="btn" href="{% url 'gestorUsuarios:gestion' %}">Gestión de Usuarios</a>
+<h1>Perfil del Administrador</h1>
+<a class="btn" href="{% url 'gestorProductos:gestion' %}">Gestión de productos</a>
+<a class="btn" href="{% url 'gestorCategorias:gestion' %}">Gestión de categorias</a>
+<a class="btn" href="{% url 'gestorUsuarios:gestion' %}">Gestión de Usuarios</a>
 
-  {% if errors %}
+{% if errors %}
     <div>
-      <strong>Errores:</strong>
-      <pre>{{ errors }}</pre>
+        <strong>Errores:</strong>
+        <pre>{{ errors }}</pre>
     </div>
-  {% endif %}
+{% endif %}
 
-  {% if success %}
+{% if success %}
     <div>
-      <strong>{{ success }}</strong>
+        <strong>{{ success }}</strong>
     </div>
-  {% endif %}
+{% endif %}
 
-  <form id="form-admin" method="post" action="">
+<form id="form-admin" method="post" action="">
     {% csrf_token %}
     <div>
-      <label>ID:</label><br>
-      <input type="text" value="{{ request.session.usuario_id }}" disabled>
+        <label>ID:</label><br>
+        <input type="text" value="{{ request.session.usuario_id }}" disabled>
     </div>
 
     <div>
-      <label>Nombre:</label><br>
-      <input id="inp-nombre" type="text" name="nombre" maxlength="10" value="{{ request.session.usuario_nombre }}" readonly required>
+        <label>Nombre:</label><br>
+        <input id="inp-nombre" type="text" name="nombre" maxlength="10" value="{{ request.session.usuario_nombre }}" readonly required>
     </div>
 
     <div>
-      <label>Correo:</label><br>
-      <input id="inp-correo" type="email" name="correo" maxlength="50" value="{{ request.session.usuario_correo }}" readonly required>
+        <label>Correo:</label><br>
+        <input id="inp-correo" type="email" name="correo" maxlength="50" value="{{ request.session.usuario_correo }}" readonly required>
     </div>
 
     <div>
-      <label>Contrasena:</label><br>
-      <input id="inp-contrasena" type="password" name="contrasena" minlength="4" value="{{ request.session.usuario_contrasena }}" readonly required>
+        <label>Contrasena:</label><br>
+        <input id="inp-contrasena" type="password" name="contrasena" minlength="4" value="{{ request.session.usuario_contrasena }}" readonly required>
     </div>
 
 
     <div style="margin-top: 10px;">
-      <button id="btn-editar" type="button">Editar información</button>
-      <button id="btn-guardar" type="submit" style="display:none;">Guardar</button>
-      <button id="btn-cancelar" type="button" style="display:none;">Cancelar</button>
+        <button id="btn-editar" type="button">Editar información</button>
+        <button id="btn-guardar" type="submit" style="display:none;">Guardar</button>
+        <button id="btn-cancelar" type="button" style="display:none;">Cancelar</button>
     </div>
-  </form>
+</form>
 
-  <form method="post" action="{% url 'users:logout' %}" style="margin-top: 12px;">
+<form method="post" action="{% url 'users:logout' %}" style="margin-top: 12px;">
     {% csrf_token %}
     <button type="submit">Cerrar sesión</button>
-  </form>
+</form>
 
-  <script>
+<script>
     (function () {
-      const nombre = document.getElementById('inp-nombre');
-      const correo = document.getElementById('inp-correo');
-      const contrasena = document.getElementById('inp-contrasena');
-      const btnEditar = document.getElementById('btn-editar');
-      const btnGuardar = document.getElementById('btn-guardar');
-      const btnCancelar = document.getElementById('btn-cancelar');
+        const nombre = document.getElementById('inp-nombre');
+        const correo = document.getElementById('inp-correo');
+        const contrasena = document.getElementById('inp-contrasena');
+        const btnEditar = document.getElementById('btn-editar');
+        const btnGuardar = document.getElementById('btn-guardar');
+        const btnCancelar = document.getElementById('btn-cancelar');
 
-      let cache = {
-        nombre: nombre.value,
-        correo: correo.value,
-        contrasena: contrasena.value
-      };
+        let cache = {
+            nombre: nombre.value,
+            correo: correo.value,
+            contrasena: contrasena.value
+        };
 
-      function setEditMode(edit) {
-        [nombre, correo, contrasena].forEach(inp => { if (inp) inp.readOnly = !edit; });
-        btnEditar.style.display = edit ? 'none' : '';
-        btnGuardar.style.display = edit ? '' : 'none';
-        btnCancelar.style.display = edit ? '' : 'none';
-        if (edit) {
-          cache = { nombre: nombre.value, correo: correo.value, contrasena: contrasena ? contrasena.value : "" };
+        function setEditMode(edit) {
+            [nombre, correo, contrasena].forEach(inp => { if (inp) inp.readOnly = !edit; });
+            btnEditar.style.display = edit ? 'none' : '';
+            btnGuardar.style.display = edit ? '' : 'none';
+            btnCancelar.style.display = edit ? '' : 'none';
+            if (edit) {
+                cache = { nombre: nombre.value, correo: correo.value, contrasena: contrasena ? contrasena.value : "" };
+            }
         }
-      }
 
-      btnEditar.addEventListener('click', () => {
-        setEditMode(true);
-        nombre.focus();
-        const v = nombre.value; nombre.value = ''; nombre.value = v;
-      });
+        btnEditar.addEventListener('click', () => {
+            setEditMode(true);
+            nombre.focus();
+            const v = nombre.value; nombre.value = ''; nombre.value = v;
+        });
 
-      btnCancelar.addEventListener('click', () => {
-        nombre.value = cache.nombre;
-        correo.value = cache.correo;
-        if (contrasena) contrasena.value = cache.contrasena;
-        setEditMode(false);
-      });
-      // Al enviar, dejamos modo lectura; el servidor validará nuevamente
-      document.getElementById('form-admin').addEventListener('submit', function () {
-      });
+        btnCancelar.addEventListener('click', () => {
+            nombre.value = cache.nombre;
+            correo.value = cache.correo;
+            if (contrasena) contrasena.value = cache.contrasena;
+            setEditMode(false);
+        });
+        // Al enviar, dejamos modo lectura; el servidor validará nuevamente
+        document.getElementById('form-admin').addEventListener('submit', function () {
+        });
     })();
-  </script>
+</script>
 </body>
 </html>

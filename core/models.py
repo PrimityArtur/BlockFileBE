@@ -198,16 +198,16 @@ class DetallesProducto(models.Model):
 
 class CalificacionProducto(models.Model):
     # Django no soporta PK compuesta; se fija PK en id_producto y se asegura (id_producto, id_usuario) en constrains.
-    producto = models.ForeignKey(
-        Producto,
-        db_column='id_producto',
-        on_delete=models.PROTECT,
-        related_name='calificaciones',
-        primary_key=True,
-    )
+    id_calificacion = models.BigAutoField(primary_key=True, db_column='id_calificacion')
     usuario = models.ForeignKey(
         'Cliente',
         db_column='id_usuario',
+        on_delete=models.PROTECT,
+        related_name='calificaciones',
+    )
+    producto = models.ForeignKey(
+        'Producto',
+        db_column='id_producto',
         on_delete=models.PROTECT,
         related_name='calificaciones'
     )
@@ -226,8 +226,8 @@ class CalificacionProducto(models.Model):
                 name='CHECK_CALIFICACION'
             ),
             models.UniqueConstraint(
-                fields=['producto', 'usuario'],
-                name='PK_CALIFICACION_PRODUCTO'
+                fields=['usuario', 'producto'],
+                name='UQ_CALIFICACION_USUARIO_PRODUCTO'
             ),
         ]
         indexes = [
@@ -269,12 +269,12 @@ class ComentarioProducto(models.Model):
 
 
 class CompraProducto(models.Model):
+    id_compra_producto = models.BigAutoField(primary_key=True, db_column='id_compra_producto')
     producto = models.ForeignKey(
-        Producto,
+        'Producto',
         db_column='id_producto',
         on_delete=models.PROTECT,
         related_name='compras',
-        primary_key=True,
     )
     usuario = models.ForeignKey(
         'Cliente',
@@ -290,7 +290,7 @@ class CompraProducto(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['producto', 'usuario'],
-                name='PK_COMPRA_PRODUCTO'
+                name='UQ_COMPRA_USUARIO_PRODUCTO'
             ),
         ]
         indexes = [

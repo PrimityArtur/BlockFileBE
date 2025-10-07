@@ -1,3 +1,3 @@
 
 
-PER_PAGE = 20
+PER_PAGE = 5

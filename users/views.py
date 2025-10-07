@@ -24,7 +24,7 @@ def iniciar_sesion_view(request):
             request.session["usuario_contrasena"] = usuario.contrasena
             request.session["usuario_tipo"] = tipo
 
-            return redirect("users:perfil_admin" if tipo == "administrador" else "users:catalogo")
+            return redirect("users:perfil_admin" if tipo == "administrador" else "catalogoProductos:catalogo")
 
         ctx["errors"] = ser.errors
 
@@ -100,6 +100,3 @@ def perfil_usuario_view(request):
 def logout_view(request):
     request.session.flush()  # limpia toda la sesión
     return redirect("users:iniciar")
-
-def catalogo_view(request):
-    return render(request, "users/Catalogo.html")

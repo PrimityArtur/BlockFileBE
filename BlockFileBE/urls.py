@@ -23,5 +23,6 @@ urlpatterns = [
     path('gestor-productos/', include('gestorProductos.urls', namespace='gestorProductos')),
     path('gestor-categorias/', include('gestorCategorias.urls', namespace='gestorCategorias')),
     path('gestor-usuarios/', include('gestorUsuarios.urls', namespace='gestorUsuarios')),
-    path('catalogo-productos/', include('catalogoProductos.urls', namespace='catalogoProductos'))
+    path('catalogo-productos/', include('catalogoProductos.urls', namespace='catalogoProductos')),
+    path('vista-producto/', include('vistaProducto.urls', namespace='vistaProducto'))
 ]

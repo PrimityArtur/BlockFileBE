@@ -1,12 +1,23 @@
-
-from dataclasses import dataclass
-from decimal import Decimal
 from typing import Optional, List, Tuple
-
-from django.db import transaction
+import magic
+import mimetypes
 
 from . import repository as repo
-from core.utils import PER_PAGE
 
-def listar_pagina(*, page:int, per_page:int=PER_PAGE, **filtros) -> Tuple[list,int]:
-    return repo.listar_pagina(page=page, per_page=per_page, **filtros)
+def descargar_producto(producto_id: int) -> Tuple[str, bytes]:
+    data = repo.archivo_producto(producto_id)
+    nombre, contenido = data
+
+    mime = magic.Magic(mime=True).from_buffer(contenido[:4096]) or "application/octet-stream"
+    ext = mimetypes.guess_extension(mime) or ""
+    base = "".join(ch if ch.isalnum() or ch in (" ", "-", "_") else "_" for ch in nombre).strip() or "archivo"
+
+    filename = f"{base}{ext}"
+    return filename, contenido, mime
+
+def calificar_producto(producto_id: int, usuario_id: int, calificacion: int) -> None:
+    repo.calificar_producto(producto_id, usuario_id, calificacion)
+
+
+def comentar_producto(producto_id: int, usuario_id: int, descripcion: str) -> None:
+    repo.comentar_producto(producto_id, usuario_id, descripcion)

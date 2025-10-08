@@ -1,57 +1,37 @@
 import magic
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, Http404
-from django.middleware.csrf import get_token
-import json
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, Http404, HttpResponseForbidden
 
 from core.models import ImagenProducto
+from . import repository as repo
+from . import services as serv
 from . import serializer as serial
-from core.utils import PER_PAGE
 
 
-@require_http_methods(["GET"])
-def catalogo_productos_view(request):
-    val = serial.catalogoProductosSerializer(data={
-        "nombre": (request.GET.get("nombre") or "").strip(),
-        "autor": (request.GET.get("autor") or "").strip(),
-        "categoria": (request.GET.get("categoria") or "").strip(),
-        "page": request.GET.get("page", "1"),
-    })
-    val.is_valid(raise_exception=False)
-    data = val.validated_data if val.is_valid() else {}
+@require_http_methods(["GET", "POST"])
+def detalle_producto_view(request, producto_id: int):
+    cliente_id = request.session.get("usuario_id")
 
-    filas, total_pages = val.listar(per_page=PER_PAGE) if val.is_valid() else ([], 1)
-    page = int(data.get("page", 1) or 1)
+    if request.method == "POST":
+        if not cliente_id:
+            return HttpResponseForbidden("Debes iniciar sesión para comprar.")
+        _res = repo.registrar_compra(producto_id, cliente_id)
+
+    detalle = repo.obtener_detalle_producto(producto_id, cliente_id)
+    if not detalle:
+        raise Http404("Producto no encontrado")
+
+    comentarios = repo.listar_comentarios_producto(producto_id)
 
     ctx = {
-        "filas": filas,
-        "page": page,
-        "total_pages": total_pages,
-        "filtros": {
-            "nombre": data.get("nombre") or "",
-            "autor": data.get("autor") or "",
-            "categoria": data.get("categoria") or "",
-        },
-        "csrf_token": get_token(request),
+        "p": detalle,
+        "comentarios": comentarios,
+        "mostrar_acciones": detalle.get("cliente_compro", False),
     }
-    return render(request, "users/Catalogo.html", ctx)
-
-
-@require_http_methods(["GET"])
-def api_listar_productos(request):
-    val = serial.catalogoProductosSerializer(data={
-        "nombre": (request.GET.get("nombre") or "").strip(),
-        "autor": (request.GET.get("autor") or "").strip(),
-        "categoria": (request.GET.get("categoria") or "").strip(),
-        "page": request.GET.get("page", "1"),
-    })
-    if not val.is_valid():
-        return JsonResponse({"ok": False, "errors": val.errors}, status=400)
-    filas, total_pages = val.listar(per_page=PER_PAGE)
-    return JsonResponse({"ok": True, "rows": filas, "page": val.validated_data.get("page", 1), "total_pages": total_pages})
-
+    return render(request, "products/VistaProducto.html", ctx)
 
 @require_http_methods(["GET"])
 def api_imagen_producto(request, id_imagen: int):
@@ -65,3 +45,37 @@ def api_imagen_producto(request, id_imagen: int):
     content_type = mime.from_buffer(data) or "application/octet-stream" #image/png, image/jpeg, image/webp...
     return HttpResponse(data, content_type=content_type)
 
+@require_http_methods(["POST"])
+def descargar_producto_view(request, producto_id: int):
+    filename, contenido, mime = serv.descargar_producto(producto_id)
+
+    resp = HttpResponse(contenido, content_type=mime)
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    resp["Content-Length"] = str(len(contenido))
+    return resp
+
+@require_http_methods(["POST"])
+def calificar_producto_view(request, producto_id: int):
+    usuario_id = request.session.get("usuario_id")
+    data = {"calificacion": request.POST.get("calificacion")}
+
+    ser = serial.CalificarProductoSerializer(data=data)
+    if not ser.is_valid(): print(ser.errors)
+    cal = ser.validated_data["calificacion"]
+
+    serv.calificar_producto(producto_id=producto_id, usuario_id=usuario_id, calificacion=cal)
+
+    return JsonResponse({"ok": True, "producto_id": producto_id, "calificacion": cal})
+
+@require_http_methods(["POST"])
+def comentar_producto_view(request, producto_id: int):
+    usuario_id = request.session.get("usuario_id")
+    data = {"descripcion": request.POST.get("descripcion")}
+
+    ser = serial.ComentarProductoSerializer(data=data)
+    if not ser.is_valid(): print(ser.errors)
+    descripcion = ser.validated_data["descripcion"]
+
+    serv.comentar_producto(producto_id=producto_id, usuario_id=usuario_id, descripcion=descripcion)
+
+    return JsonResponse({"ok": True, "producto_id": producto_id, "descripcion": descripcion})

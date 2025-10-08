@@ -29,7 +29,11 @@
             {% else %}
                 <span>Sin imagen</span>
             {% endif %}
-            <div><strong>{{ p.nombre }}</strong></div>
+            <div>
+                <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
+                    <strong>{{ p.nombre }}</strong>
+                </a>
+            </div>
             <div>Autor: {{ p.autor|default:"-" }}</div>
             <div>Calificación: {{ p.calificacion_promedio|default:"-" }}</div>
             <div>{{ p.compras }} compras</div>
@@ -95,12 +99,16 @@
             for (const p of rows) {
                 const li = document.createElement('li');
                 const imgHtml = p.imagen_1_id
-                    ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${esc(p.nombre)}">`
+                    ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${p.nombre}">`
                     : `<span>Sin imagen</span>`;
                 li.innerHTML = `
                     ${imgHtml}
-                    <div><strong>${esc(p.nombre)}</strong></div>
-                    <div>Autor: ${esc(p.autor || '-')}</div>
+                    <div>
+                        <a href="{\% url 'vistaProducto:detalle_producto' p.id \%}">
+                            <strong>${p.nombre}</strong>
+                        </a>
+                    </div>
+                    <div>Autor: ${(p.autor || '-')}</div>
                     <div>Calificación: ${p.calificacion_promedio ?? '-'}</div>
                     <div>${p.compras ?? 0} compras</div>
                 `;
@@ -108,11 +116,6 @@
             }
         }
 
-        function esc(s) {
-            return String(s).replace(/[&<>"']/g, m => (
-                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
-            ));
-        }
 
         function renderPaginador(page, total) {
             const pager = document.getElementById('pager');

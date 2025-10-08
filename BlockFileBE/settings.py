@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'gestorProductos.apps.GestorProductosConfig',
     'gestorCategorias.apps.gestorCategoriasConfig',
     'catalogoProductos.apps.catalogoProductosConfig',
+    'vistaProducto.apps.vistaProductoConfig',
 ]
 
 MIDDLEWARE = [

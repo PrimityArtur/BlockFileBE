@@ -23,3 +23,9 @@ class catalogoProductosSerializer(serializers.Serializer):
         )
         return filas, total_pages
 
+class CalificarProductoSerializer(serializers.Serializer):
+    calificacion = serializers.IntegerField(min_value=1, max_value=5)
+
+
+class ComentarProductoSerializer(serializers.Serializer):
+    descripcion = serializers.CharField(max_length=500)

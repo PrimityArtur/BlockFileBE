@@ -85,8 +85,8 @@
                 .catch(() => alert('No se pudo obtener la lista'));
         }
 
-        const IMG_DUMMY = "{% url 'catalogoProductos:api_imagen' 1 %}";
-        const buildImgUrl = id => IMG_DUMMY.replace(/1\/?$/, id);
+        const buildDetailUrl = id => "{% url 'vistaProducto:detalle_producto' 0 %}".replace("0/", `${id}/`);
+        const buildImgUrl    = id => "{% url 'catalogoProductos:api_imagen' 0 %}".replace("0/", `${id}/`);
         function renderTabla(rows) {
             const tbody = document.getElementById('tblBody');
             tbody.innerHTML = '';
@@ -104,9 +104,7 @@
                 li.innerHTML = `
                     ${imgHtml}
                     <div>
-                        <a href="{\% url 'vistaProducto:detalle_producto' p.id \%}">
-                            <strong>${p.nombre}</strong>
-                        </a>
+                    <a href="${buildDetailUrl(p.id)}"><strong>${p.nombre}</strong></a>
                     </div>
                     <div>Autor: ${(p.autor || '-')}</div>
                     <div>Calificación: ${p.calificacion_promedio ?? '-'}</div>

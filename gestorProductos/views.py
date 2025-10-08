@@ -3,6 +3,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.middleware.csrf import get_token
 import json
+import magic
 
 from core.models import ImagenProducto
 from . import serializer as serial
@@ -14,27 +15,21 @@ from core.utils import PER_PAGE
 def gestion_productos_view(request):
     val = serial.ValidarProductoSerializer(data={
         "id": request.GET.get("id"),
-        "nombre": (request.GET.get("nombre") or "").strip(),
-        "autor": (request.GET.get("autor") or "").strip(),
-        "categoria": (request.GET.get("categoria") or "").strip(),
+        "nombre": request.GET.get("nombre", "").strip(),
+        "autor": request.GET.get("autor", "").strip(),
+        "categoria": request.GET.get("categoria", "").strip(),
         "page": request.GET.get("page", "1"),
     })
+
     val.is_valid(raise_exception=False)
     data = val.validated_data if val.is_valid() else {}
-
     filas, total_pages = val.listar(per_page=PER_PAGE) if val.is_valid() else ([], 1)
-    page = int(data.get("page", 1) or 1)
 
     ctx = {
         "filas": filas,
-        "page": page,
+        "page": int(data.get("page", 1)),
         "total_pages": total_pages,
-        "filtros": {
-            "id": data.get("id") or "",
-            "nombre": data.get("nombre") or "",
-            "autor": data.get("autor") or "",
-            "categoria": data.get("categoria") or "",
-        },
+        "filtros": {k: (data.get(k) or "") for k in ("id", "nombre", "autor", "categoria")},
         "csrf_token": get_token(request),
     }
     return render(request, "products/GestionProductos.html", ctx)
@@ -44,85 +39,82 @@ def gestion_productos_view(request):
 def api_listar_productos(request):
     val = serial.ValidarProductoSerializer(data={
         "id": request.GET.get("id"),
-        "nombre": (request.GET.get("nombre") or "").strip(),
-        "autor": (request.GET.get("autor") or "").strip(),
-        "categoria": (request.GET.get("categoria") or "").strip(),
+        "nombre": request.GET.get("nombre", "").strip(),
+        "autor": request.GET.get("autor", "").strip(),
+        "categoria": request.GET.get("categoria", "").strip(),
         "page": request.GET.get("page", "1"),
     })
-    if not val.is_valid():
-        return JsonResponse({"ok": False, "errors": val.errors}, status=400)
-    filas, total_pages = val.listar(per_page=PER_PAGE)
-    return JsonResponse({"ok": True, "rows": filas, "page": val.validated_data.get("page", 1), "total_pages": total_pages})
+
+    val.is_valid(raise_exception=False)
+    filas, total_pages = val.listar(per_page=PER_PAGE) if val.is_valid() else ([], 1)
+    page = int(val.validated_data.get("page", 1)) if val.is_valid() else 1
+
+    return JsonResponse({
+        "ok": True,
+        "rows": filas,
+        "page": page,
+        "total_pages": total_pages
+    })
 
 
 @require_http_methods(["GET"])
 def api_detalle_producto(request, id_producto: int):
-    val = serial.DetalleProductoEntradaSerializer(data={"id_producto": id_producto})
-    if not val.is_valid():
-        return JsonResponse({"error": "parámetros inválidos"}, status=400)
-    d = val.obtener()
-    if not d:
-        return JsonResponse({"error": "no encontrado"}, status=404)
-    return JsonResponse(d)
+    ser = serial.DetalleProductoEntradaSerializer(data={"id_producto": id_producto})
+    ser.is_valid(raise_exception=False)
+    data = ser.obtener()
+    return JsonResponse(data or {}, status=200 if data else 404)
 
 
 @require_http_methods(["POST"])
 def api_guardar_producto(request):
-    if request.content_type and request.content_type.startswith("application/json"):
-        data = json.loads(request.body.decode("utf-8"))
-    else:
-        data = request.POST.dict()
-
-    val = serial.GuardarProductoSerializer(data=data)
-    if not val.is_valid():
-        return JsonResponse({"errors": val.errors}, status=400)
-
-    res = val.save()
+    data = (
+        json.loads(request.body.decode("utf-8") or "{}")
+        if (request.content_type or "").startswith("application/json")
+        else request.POST.dict()
+    )
+    ser = serial.GuardarProductoSerializer(data=data)
+    ser.is_valid(raise_exception=False)
+    res = ser.save()
     return JsonResponse({"ok": True, **res})
 
 
 @require_http_methods(["POST"])
 def api_subir_imagen(request, id_producto: int):
-    f = request.FILES.get("archivo")
-    if not f:
+    archivo = request.FILES.get("archivo")
+    if not archivo:
         return HttpResponseBadRequest("archivo requerido")
-
     orden = request.POST.get("orden")
-    val = serial.ImagenEntradaSerializer(data={
-        "id_producto": id_producto,
-        "orden": int(orden) if (orden and str(orden).isdigit()) else None
-    })
-    img_id = serv.agregar_imagen(id_producto=id_producto, contenido=f.read(), orden=orden)
+    img_id = serv.agregar_imagen(
+        id_producto=id_producto,
+        contenido=archivo.read(),
+        orden=int(orden) if str(orden).isdigit() else None
+    )
     return JsonResponse({"ok": True, "id_imagen": img_id})
-
 
 @require_http_methods(["POST"])
 def api_borrar_imagen(request, id_imagen: int):
-    val = serial.BorrarImagenSerializer(data={"id_imagen": id_imagen})
-    if not val.is_valid():
-        return JsonResponse({"errors": val.errors}, status=400)
-    val.aplicar()
+    ser = serial.BorrarImagenSerializer(data={"id_imagen": id_imagen})
+    ser.is_valid(raise_exception=False)
+    ser.aplicar()
     return JsonResponse({"ok": True})
 
 
 @require_http_methods(["POST"])
 def api_reordenar_imagen(request, id_imagen: int):
-    nuevo_orden = request.POST.get("orden")
-    if not (nuevo_orden and str(nuevo_orden).isdigit()):
+    orden = request.POST.get("orden")
+    if not (orden and str(orden).isdigit()):
         return HttpResponseBadRequest("orden requerido")
-    val = serial.ReordenarImagenSerializer(data={"id_imagen": id_imagen, "orden": int(nuevo_orden)})
-    if not val.is_valid():
-        return JsonResponse({"errors": val.errors}, status=400)
-    val.aplicar()
+    ser = serial.ReordenarImagenSerializer(data={"id_imagen": id_imagen, "orden": int(orden)})
+    ser.is_valid(raise_exception=False)
+    ser.aplicar()
     return JsonResponse({"ok": True})
 
 
 @require_http_methods(["POST"])
 def api_eliminar_producto(request, id_producto: int):
-    val = serial.EliminarProductoSerializer(data={"id_producto": id_producto})
-    if not val.is_valid():
-        return JsonResponse({"errors": val.errors}, status=400)
-    val.aplicar()
+    ser = serial.EliminarProductoSerializer(data={"id_producto": id_producto})
+    ser.is_valid(raise_exception=False)
+    ser.aplicar()
     return JsonResponse({"ok": True})
 
 
@@ -132,4 +124,23 @@ def api_imagen_producto(request, id_imagen: int):
         img = ImagenProducto.objects.get(pk=id_imagen)
     except ImagenProducto.DoesNotExist:
         return HttpResponseBadRequest("no existe")
-    return HttpResponse(img.archivo, content_type='image/*')
+    mime_type = magic.from_buffer(img.archivo, mime=True) or "application/octet-stream"
+    return HttpResponse(img.archivo, content_type=mime_type)
+
+
+@require_http_methods(["POST"])
+def api_subir_archivo_producto(request, id_producto: int):
+    f = request.FILES.get('archivo')
+    if not f:
+        return HttpResponseBadRequest("archivo requerido")
+    serv.subir_archivo_producto_srv(id_producto, f.read())
+    return JsonResponse({"ok": True})
+
+@require_http_methods(["GET","POST"])
+def descargar_producto_view(request, producto_id: int):
+    filename, contenido, mime = serv.descargar_producto(producto_id)
+
+    resp = HttpResponse(contenido, content_type=mime)
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    resp["Content-Length"] = str(len(contenido))
+    return resp

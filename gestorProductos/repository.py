@@ -3,7 +3,7 @@ from typing import Optional, Tuple, List, Iterable
 from decimal import Decimal
 from django.db.models import Q, Avg, Prefetch
 from django.core.paginator import Paginator
-from django.db import transaction
+from django.db import transaction, connection
 
 from core.models import (
     Producto, DetallesProducto, Autor, Categoria, ImagenProducto, CalificacionProducto
@@ -89,6 +89,7 @@ def obtener_producto_detalle(id_producto:int) -> Optional[dict]:
         "autor": p.autor.nombre if p.autor_id else "",
         "imagenes": imagenes,
         "activo": p.activo,
+        "tiene_archivo": bool(p.archivo) if hasattr(p, "archivo") else False,
     }
 
 @transaction.atomic
@@ -120,9 +121,7 @@ def crear_actualizar_producto(
         p.activo = activo
         p.save(update_fields=['nombre','autor','categoria','activo'])
     else:
-        # archivo binario del producto principal: por ahora vacío; se actualizará en otra pantalla
         p = Producto.objects.create(nombre=nombre, autor=autor, categoria=categoria, activo=activo, archivo=b"")
-    # detalles
     DetallesProducto.objects.update_or_create(
         producto=p,
         defaults={"descripcion": descripcion, "version": version, "precio": precio},
@@ -150,6 +149,29 @@ def reordenar_imagen(id_imagen:int, nuevo_orden:int) -> None:
 
 @transaction.atomic
 def eliminar_producto(id_producto:int) -> None:
-    Producto.objects.filter(pk=id_producto).delete()
+    Producto.objects.filter(pk=id_producto).update(activo=False)
 
 
+def actualizar_archivo_producto(
+        id_producto: int,
+        archivo_bytes: bytes
+) -> None:
+    sql = 'UPDATE "PRODUCTO" SET archivo = %s WHERE id_producto = %s'
+    with connection.cursor() as cur:
+        cur.execute(sql, [archivo_bytes, id_producto])
+
+def archivo_producto(
+        producto_id: int
+) -> Optional[Tuple[str, bytes]]:
+    sql = """
+    SELECT p.nombre, p.archivo
+    FROM "PRODUCTO" p
+    WHERE p.id_producto = %s AND p.activo = TRUE
+    """
+    with connection.cursor() as cur:
+        cur.execute(sql, [producto_id])
+        row = cur.fetchone()
+    if not row:
+        return None
+    nombre, archivo = row
+    return (str(nombre), bytes(archivo))

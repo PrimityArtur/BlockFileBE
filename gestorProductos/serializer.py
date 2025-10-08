@@ -25,35 +25,30 @@ class ValidarProductoSerializer(serializers.Serializer):
         )
         return filas, total_pages
 
-
 class GuardarProductoSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     nombre = serializers.CharField(max_length=50)
     descripcion = serializers.CharField(allow_blank=True, required=False)
     version = serializers.CharField(allow_blank=True, required=False, max_length=50)
-    precio = serializers.CharField()
+    precio = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0"))
     id_autor = serializers.IntegerField(required=False, allow_null=True)
     id_categoria = serializers.IntegerField(required=False, allow_null=True)
     activo = serializers.BooleanField(default=True)
 
-    def validate_precio(self, v):
-        try:
-            d = Decimal(v)
-        except (InvalidOperation, TypeError):
-            raise serializers.ValidationError('precio inválido')
-        if d < 0:
-            raise serializers.ValidationError('precio debe ser >= 0')
-        return str(d)
-
-    # DRF: view -> serializer.is_valid() -> serializer.save() -> create/update
     def create(self, validated_data):
         pid = serv.guardar_producto(**validated_data)
         return {"id": pid}
 
-    # Si quisieras soportar update via instance, aquí delegas igual:
     def update(self, instance, validated_data):
         pid = serv.guardar_producto(**validated_data)
         return {"id": pid}
+
+
+class DetalleProductoEntradaSerializer(serializers.Serializer):
+    id_producto = serializers.IntegerField()
+
+    def obtener(self):
+        return serv.obtener_detalle(self.validated_data["id_producto"])
 
 
 class ImagenEntradaSerializer(serializers.Serializer):
@@ -85,10 +80,3 @@ class EliminarProductoSerializer(serializers.Serializer):
 
     def aplicar(self):
         serv.eliminar_producto(id_producto=self.validated_data["id_producto"])
-
-
-class DetalleProductoEntradaSerializer(serializers.Serializer):
-    id_producto = serializers.IntegerField()
-
-    def obtener(self):
-        return serv.obtener_detalle(self.validated_data["id_producto"])

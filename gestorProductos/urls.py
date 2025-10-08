@@ -15,4 +15,9 @@ urlpatterns = [
     path('gestion/api/imagen/<int:id_imagen>/', views.api_imagen_producto, name='api_imagen'),
 
     path('gestion/api/listar/', views.api_listar_productos, name='api_listar'),
+
+    path("gestion/api/subir_archivo/<int:id_producto>/", views.api_subir_archivo_producto, name="api_subir_archivo_producto"),
+# urls.py
+    path("gestion/api/descargar_archivo/<int:producto_id>/", views.descargar_producto_view, name="descargar_archivo_producto"),
+
 ]

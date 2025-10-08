@@ -1,9 +1,10 @@
-
+import mimetypes
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional, List, Tuple
 
 from django.db import transaction
+import magic
 
 from . import repository as repo
 from core.utils import PER_PAGE
@@ -48,4 +49,17 @@ def reordenar_imagen(*, id_imagen:int, nuevo_orden:int) -> None:
 def eliminar_producto(*, id_producto:int) -> None:
     repo.eliminar_producto(id_producto)
 
+def subir_archivo_producto_srv(id_producto: int, contenido: bytes) -> None:
+    repo.actualizar_archivo_producto(id_producto, contenido)
 
+
+def descargar_producto(producto_id: int) -> Tuple[str, bytes, str]:
+    data = repo.archivo_producto(producto_id)
+    nombre, contenido = data
+
+    mime = magic.Magic(mime=True).from_buffer(contenido[:4096]) or "application/octet-stream"
+    ext = mimetypes.guess_extension(mime) or ""
+    base = "".join(ch if ch.isalnum() or ch in (" ", "-", "_") else "_" for ch in nombre).strip() or "archivo"
+
+    filename = f"{base}{ext}"
+    return filename, contenido, mime

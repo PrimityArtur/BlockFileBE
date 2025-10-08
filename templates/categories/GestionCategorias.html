@@ -1,260 +1,281 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Gestión de Categorías</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <title>Gestión de Categorías</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
 </head>
 <body>
-  <h1>Gestión de Categorías</h1>
 
-  <!-- Buscador + Agregar -->
-  <form id="formBuscar" method="get" action="">
+<header>
+    <h1>BlockFile</h1>
+    <a class="btn" href="{% url 'users:perfil_admin' %}">Perfil</a>
+    <a class="btn" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
+    <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Categorias</a>
+    <a class="btn" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+</header>
+<h1>Gestión de Categorías</h1>
+
+<!-- Buscador + Agregar -->
+<form id="formBuscar" method="get" action="">
     <span>Buscar por:</span>
     <input type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
     <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
     <input type="text" name="descripcion" placeholder="Descripcion" value="{{ filtros.descripcion }}">
     <button type="submit">Buscar</button>
     <button type="button" id="btnAgregar">Agregar</button>
-  </form>
+</form>
 
-  <!-- Tabla -->
-  <table border="1" cellpadding="6" cellspacing="0" style="margin-top:12px; width:100%; max-width:980px">
+<!-- Tabla -->
+<table border="1" cellpadding="6" cellspacing="0" style="margin-top:12px; width:100%; max-width:980px">
     <thead>
-      <tr>
+    <tr>
         <th>ID</th>
         <th>Nombre</th>
         <th>Descripción</th>
         <th></th>
-      </tr>
+    </tr>
     </thead>
     <tbody id="tblBody">
-      {% for p in filas %}
-      <tr>
-        <td>{{ p.id }}</td>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.descripcion }}</td>
-        <td><button type="button" onclick="abrirEditar({{ p.id }})">Editar</button></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">Sin resultados</td></tr>
-      {% endfor %}
+    {% for p in filas %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.descripcion }}</td>
+            <td>
+                <button type="button" onclick="abrirEditar({{ p.id }})">Editar</button>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5">Sin resultados</td>
+        </tr>
+    {% endfor %}
     </tbody>
-  </table>
+</table>
 
-  <!-- Paginador -->
-  <div id="pager" style="margin-top:10px;">
+<!-- Paginador -->
+<div id="pager" style="margin-top:10px;">
     <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-    <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
+    <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+    </button>
     <span>Página {{ page }} de {{ total_pages }}</span>
-    <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;</button>
-    <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último &raquo;</button>
-  </div>
+    <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig
+        &rsaquo;
+    </button>
+    <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último
+        &raquo;
+    </button>
+</div>
 
-  <!-- Modal simple con JS sin CSS (para migrar a Angular luego) -->
-  <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);">
+<!-- Modal simple con JS sin CSS (para migrar a Angular luego) -->
+<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);">
     <div style="background:#fff; margin:40px auto; padding:16px; width:min(900px, 95%); max-height:85vh; overflow:auto;">
-      <h3 id="modalTitulo">Categoría</h3>
-      <form id="formCategoria">
-        <input type="hidden" id="inpId" name="id" />
+        <h3 id="modalTitulo">Categoría</h3>
+        <form id="formCategoria">
+            <input type="hidden" id="inpId" name="id"/>
 
-        <fieldset>
-          <legend>Campos no modificables</legend>
-          <div>Fecha de subida: <span id="spFecha">—</span></div>
-          <div>ID: <span id="spId">—</span></div>
-        </fieldset>
+            <fieldset>
+                <legend>Campos no modificables</legend>
+                <div>Fecha de subida: <span id="spFecha">—</span></div>
+                <div>ID: <span id="spId">—</span></div>
+            </fieldset>
 
-        <fieldset style="margin-top:10px;">
-          <legend>Campos editables</legend>
-          <div>
-            <label>Nombre</label><br />
-            <input type="text" id="inpNombre" name="nombre" maxlength="50" required />
-          </div>
-          <div>
-            <label>Descripción</label><br />
-            <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
-          </div>
-        </fieldset>
+            <fieldset style="margin-top:10px;">
+                <legend>Campos editables</legend>
+                <div>
+                    <label>Nombre</label><br/>
+                    <input type="text" id="inpNombre" name="nombre" maxlength="50" required/>
+                </div>
+                <div>
+                    <label>Descripción</label><br/>
+                    <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
+                </div>
+            </fieldset>
 
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          <button type="button" id="btnAceptar">Aceptar</button>
-          <button type="button" id="btnBorrar">Borrar</button>
-          <button type="button" onclick="cerrarModal()">Cerrar</button>
-        </div>
-      </form>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button type="button" id="btnAceptar">Aceptar</button>
+                <button type="button" id="btnBorrar">Borrar</button>
+                <button type="button" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </form>
     </div>
-  </div>
+</div>
 
-  <script>
+<script>
     const CSRF_TOKEN = "{{ csrf_token }}";
 
     // --- Buscar sin recargar (AJAX) ---
-  const formBuscar = document.getElementById('formBuscar');
-  formBuscar.addEventListener('submit', (e) => {
-    e.preventDefault();
-    buscar(1);
-  });
+    const formBuscar = document.getElementById('formBuscar');
+    formBuscar.addEventListener('submit', (e) => {
+        e.preventDefault();
+        buscar(1);
+    });
 
-  function queryParamsFromForm() {
-    const fd = new FormData(formBuscar);
-    const q = new URLSearchParams();
-    for (const [k, v] of fd.entries()) {
-      if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
-    }
-    return q;
-  }
-
-  function buscar(page = 1) {
-    const q = queryParamsFromForm();
-    q.set('page', String(page));
-    fetch(`./api/listar/?${q.toString()}`)
-      .then(r => r.json())
-      .then(resp => {
-        if (!resp.ok) {
-          alert('Error al listar');
-          return;
+    function queryParamsFromForm() {
+        const fd = new FormData(formBuscar);
+        const q = new URLSearchParams();
+        for (const [k, v] of fd.entries()) {
+            if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
         }
-        renderTabla(resp.rows);
-        renderPaginador(resp.page, resp.total_pages);
-        // Actualiza la URL (opcional, útil para recargar con el mismo estado)
-        const u = new URL(window.location.href);
-        u.search = q.toString();
-        window.history.replaceState(null, '', u.toString());
-      })
-      .catch(() => alert('No se pudo obtener la lista'));
-  }
-
-  function renderTabla(rows) {
-    const tbody = document.getElementById('tblBody');
-    tbody.innerHTML = '';
-    if (!rows || rows.length === 0) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="5">Sin resultados</td>`;
-      tbody.appendChild(tr);
-      return;
+        return q;
     }
-    for (const p of rows) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+
+    function buscar(page = 1) {
+        const q = queryParamsFromForm();
+        q.set('page', String(page));
+        fetch(`./api/listar/?${q.toString()}`)
+            .then(r => r.json())
+            .then(resp => {
+                if (!resp.ok) {
+                    alert('Error al listar');
+                    return;
+                }
+                renderTabla(resp.rows);
+                renderPaginador(resp.page, resp.total_pages);
+                // Actualiza la URL (opcional, útil para recargar con el mismo estado)
+                const u = new URL(window.location.href);
+                u.search = q.toString();
+                window.history.replaceState(null, '', u.toString());
+            })
+            .catch(() => alert('No se pudo obtener la lista'));
+    }
+
+    function renderTabla(rows) {
+        const tbody = document.getElementById('tblBody');
+        tbody.innerHTML = '';
+        if (!rows || rows.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="5">Sin resultados</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+        for (const p of rows) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
         <td>${p.id}</td>
         <td>${esc(p.nombre)}</td>
         <td>${esc(p.descripcion || '')}</td>
         <td><button type="button" onclick="abrirEditar(${p.id})">Editar</button></td>
       `;
-      tbody.appendChild(tr);
+            tbody.appendChild(tr);
+        }
     }
-  }
 
-  function renderPaginador(page, total) {
-    const pager = document.getElementById('pager');
-    const disPrim = page <= 1 ? 'disabled' : '';
-    const disAnt  = page <= 1 ? 'disabled' : '';
-    const disSig  = page >= total ? 'disabled' : '';
-    const disUlt  = page >= total ? 'disabled' : '';
+    function renderPaginador(page, total) {
+        const pager = document.getElementById('pager');
+        const disPrim = page <= 1 ? 'disabled' : '';
+        const disAnt = page <= 1 ? 'disabled' : '';
+        const disSig = page >= total ? 'disabled' : '';
+        const disUlt = page >= total ? 'disabled' : '';
 
-    pager.innerHTML = `
+        pager.innerHTML = `
       <button type="button" onclick="irPagina(1)" ${disPrim}>&laquo; Primero</button>
       <button type="button" onclick="irPagina(${page - 1})" ${disAnt}>&lsaquo; Ant</button>
       <span>Página ${page} de ${total}</span>
       <button type="button" onclick="irPagina(${page + 1})" ${disSig}>Sig &rsaquo;</button>
       <button type="button" onclick="irPagina(${total})" ${disUlt}>Último &raquo;</button>
     `;
-  }
+    }
 
-  // Utilidad simple contra XSS en textos
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, m => (
-      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
-    ));
-  }
+    // Utilidad simple contra XSS en textos
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, m => (
+            {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m]
+        ));
+    }
 
-  function irPagina(p) {
-    if (p < 1) p = 1;
-    buscar(p);
-  }
+    function irPagina(p) {
+        if (p < 1) p = 1;
+        buscar(p);
+    }
 
     document.getElementById('btnAgregar').addEventListener('click', () => {
-      abrirModalCrear();
+        abrirModalCrear();
     });
 
     function abrirEditar(id) {
-      fetch(`./api/detalle/${id}/`)
-        .then(r => r.json())
-        .then(d => {
-          abrirModalConDatos(d);
-        });
+        fetch(`./api/detalle/${id}/`)
+            .then(r => r.json())
+            .then(d => {
+                abrirModalConDatos(d);
+            });
     }
 
     function abrirModalCrear() {
-      document.getElementById('modalTitulo').textContent = "Agregar categoría";
-      document.getElementById('inpId').value = "";
-      document.getElementById('spId').textContent = "—";
-      document.getElementById('spFecha').textContent = "—";
-      document.getElementById('inpNombre').value = "";
-      document.getElementById('inpDescripcion').value = "";
-      abrirModal();
+        document.getElementById('modalTitulo').textContent = "Agregar categoría";
+        document.getElementById('inpId').value = "";
+        document.getElementById('spId').textContent = "—";
+        document.getElementById('spFecha').textContent = "—";
+        document.getElementById('inpNombre').value = "";
+        document.getElementById('inpDescripcion').value = "";
+        abrirModal();
     }
 
     function abrirModalConDatos(d) {
-      document.getElementById('modalTitulo').textContent = "Editar categoría";
-      document.getElementById('inpId').value = d.id;
-      document.getElementById('spId').textContent = d.id;
-      document.getElementById('spFecha').textContent = d.fecha?.slice(0,19).replace('T',' ') || '—';
+        document.getElementById('modalTitulo').textContent = "Editar categoría";
+        document.getElementById('inpId').value = d.id;
+        document.getElementById('spId').textContent = d.id;
+        document.getElementById('spFecha').textContent = d.fecha?.slice(0, 19).replace('T', ' ') || '—';
 
-      document.getElementById('inpNombre').value = d.nombre || "";
-      document.getElementById('inpDescripcion').value = d.descripcion || "";
-      abrirModal();
+        document.getElementById('inpNombre').value = d.nombre || "";
+        document.getElementById('inpDescripcion').value = d.descripcion || "";
+        abrirModal();
     }
 
     function abrirModal() {
-      document.getElementById('modal').style.display = 'block';
+        document.getElementById('modal').style.display = 'block';
     }
+
     function cerrarModal() {
-      document.getElementById('modal').style.display = 'none';
+        document.getElementById('modal').style.display = 'none';
     }
 
     document.getElementById('btnAceptar').addEventListener('click', () => {
-      const payload = {
-        id: document.getElementById('inpId').value || null,
-        nombre: document.getElementById('inpNombre').value,
-        descripcion: document.getElementById('inpDescripcion').value,
-      };
-      fetch('./api/guardar/', {
-        method:'POST',
-        headers: {'Content-Type':'application/json', 'X-CSRFToken': CSRF_TOKEN},
-        body: JSON.stringify(payload)
-      }).then(r => r.json()).then(resp => {
-        if(resp.ok){
-          alert('Guardado');
-          // si es creación, refrescar detalle para permitir imágenes
-          if(!payload.id){
-            abrirEditar(resp.id);
-          } else {
-            cerrarModal();
-            window.location.reload();
-          }
-        } else {
-          alert('Error: ' + JSON.stringify(resp));
-        }
-      });
+        const payload = {
+            id: document.getElementById('inpId').value || null,
+            nombre: document.getElementById('inpNombre').value,
+            descripcion: document.getElementById('inpDescripcion').value,
+        };
+        fetch('./api/guardar/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN},
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(resp => {
+            if (resp.ok) {
+                alert('Guardado');
+                // si es creación, refrescar detalle para permitir imágenes
+                if (!payload.id) {
+                    abrirEditar(resp.id);
+                } else {
+                    cerrarModal();
+                    window.location.reload();
+                }
+            } else {
+                alert('Error: ' + JSON.stringify(resp));
+            }
+        });
     });
 
     document.getElementById('btnBorrar').addEventListener('click', () => {
-      const id = document.getElementById('inpId').value;
-      if(!id){
-        // limpiar formulario nuevo
-        abrirModalCrear();
-        return;
-      }
-      if(confirm('¿Eliminar esta categoría?')){
-        fetch(`./api/eliminar/${id}/`, {method:'POST', headers:{'X-CSRFToken': CSRF_TOKEN}})
-          .then(r => r.json()).then(resp => {
-            if(resp.ok){ alert('Eliminado'); cerrarModal(); window.location.reload(); }
-          });
-      }
+        const id = document.getElementById('inpId').value;
+        if (!id) {
+            // limpiar formulario nuevo
+            abrirModalCrear();
+            return;
+        }
+        if (confirm('¿Eliminar esta categoría?')) {
+            fetch(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF_TOKEN}})
+                .then(r => r.json()).then(resp => {
+                if (resp.ok) {
+                    alert('Eliminado');
+                    cerrarModal();
+                    window.location.reload();
+                }
+            });
+        }
     });
 
-  </script>
+</script>
 </body>
 </html>

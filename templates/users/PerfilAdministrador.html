@@ -5,10 +5,16 @@
     <title>Perfil Administrador</title>
 </head>
 <body>
+
+<header>
+    <h1>BlockFile</h1>
+    <a class="btn" href="{% url 'users:perfil_admin' %}">Perfil</a>
+    <a class="btn" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
+    <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Categorias</a>
+    <a class="btn" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+</header>
+
 <h1>Perfil del Administrador</h1>
-<a class="btn" href="{% url 'gestorProductos:gestion' %}">Gestión de productos</a>
-<a class="btn" href="{% url 'gestorCategorias:gestion' %}">Gestión de categorias</a>
-<a class="btn" href="{% url 'gestorUsuarios:gestion' %}">Gestión de Usuarios</a>
 
 {% if errors %}
     <div>
@@ -32,17 +38,20 @@
 
     <div>
         <label>Nombre:</label><br>
-        <input id="inp-nombre" type="text" name="nombre" maxlength="10" value="{{ request.session.usuario_nombre }}" readonly required>
+        <input id="inp-nombre" type="text" name="nombre" maxlength="10" value="{{ request.session.usuario_nombre }}"
+               readonly required>
     </div>
 
     <div>
         <label>Correo:</label><br>
-        <input id="inp-correo" type="email" name="correo" maxlength="50" value="{{ request.session.usuario_correo }}" readonly required>
+        <input id="inp-correo" type="email" name="correo" maxlength="50" value="{{ request.session.usuario_correo }}"
+               readonly required>
     </div>
 
     <div>
         <label>Contrasena:</label><br>
-        <input id="inp-contrasena" type="password" name="contrasena" minlength="4" value="{{ request.session.usuario_contrasena }}" readonly required>
+        <input id="inp-contrasena" type="password" name="contrasena" minlength="4"
+               value="{{ request.session.usuario_contrasena }}" readonly required>
     </div>
 
 
@@ -74,19 +83,23 @@
         };
 
         function setEditMode(edit) {
-            [nombre, correo, contrasena].forEach(inp => { if (inp) inp.readOnly = !edit; });
+            [nombre, correo, contrasena].forEach(inp => {
+                if (inp) inp.readOnly = !edit;
+            });
             btnEditar.style.display = edit ? 'none' : '';
             btnGuardar.style.display = edit ? '' : 'none';
             btnCancelar.style.display = edit ? '' : 'none';
             if (edit) {
-                cache = { nombre: nombre.value, correo: correo.value, contrasena: contrasena ? contrasena.value : "" };
+                cache = {nombre: nombre.value, correo: correo.value, contrasena: contrasena ? contrasena.value : ""};
             }
         }
 
         btnEditar.addEventListener('click', () => {
             setEditMode(true);
             nombre.focus();
-            const v = nombre.value; nombre.value = ''; nombre.value = v;
+            const v = nombre.value;
+            nombre.value = '';
+            nombre.value = v;
         });
 
         btnCancelar.addEventListener('click', () => {

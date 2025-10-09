@@ -24,5 +24,7 @@ urlpatterns = [
     path('gestor-categorias/', include('gestorCategorias.urls', namespace='gestorCategorias')),
     path('gestor-usuarios/', include('gestorUsuarios.urls', namespace='gestorUsuarios')),
     path('catalogo-productos/', include('catalogoProductos.urls', namespace='catalogoProductos')),
-    path('vista-producto/', include('vistaProducto.urls', namespace='vistaProducto'))
+    path('vista-producto/', include('vistaProducto.urls', namespace='vistaProducto')),
+
+    path('rank/', include('Rankings.urls', namespace='Rankings'))
 ]

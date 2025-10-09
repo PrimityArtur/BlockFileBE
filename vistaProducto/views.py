@@ -14,7 +14,7 @@ from . import serializer as serial
 @require_http_methods(["GET", "POST"])
 def detalle_producto_view(request, producto_id: int):
     cliente_id = request.session.get("usuario_id")
-
+    # Para comprar el producto
     if request.method == "POST":
         if not cliente_id:
             return HttpResponseForbidden("Debes iniciar sesión para comprar.")

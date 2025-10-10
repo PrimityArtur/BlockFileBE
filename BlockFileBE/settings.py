@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'catalogoProductos.apps.catalogoProductosConfig',
     'vistaProducto.apps.vistaProductoConfig',
     'Rankings.apps.rankingsConfig',
+    'PerfilCliente.apps.PerfilClienteConfig',
 ]
 
 MIDDLEWARE = [

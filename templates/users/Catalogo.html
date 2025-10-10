@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">w
-  <title>Catálogo</title>
+    <meta charset="utf-8">
+    <title>Catálogo</title>
 </head>
 <body>
-    <header>
-        <H1>BlockFile</H1>
-        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-        <a class="btn" href="{% url 'Rankings:rankingsPMComprados' %}">Ranking</a>
-        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Perfil</a>
-        <a class="btn" href="{% url 'users:logout'%}">Cerrar Sesión</a>
-    </header>
+<header>
+    <H1>BlockFile</H1>
+    <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+    <a class="btn" href="{% url 'Rankings:rankings' %}">Ranking</a>
+    <a class="btn" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
+    <a class="btn" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+</header>
 
-    <form id="formBuscar" method="get" action="">
-        <span>Buscar por:</span>
-        <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-        <input type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
-        <input type="text" name="categoria" placeholder="Categoría" value="{{ filtros.categoria }}">
-        <button type="submit">Buscar</button>
-    </form>
+<form id="formBuscar" method="get" action="">
+    <span>Buscar por:</span>
+    <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
+    <input type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
+    <input type="text" name="categoria" placeholder="Categoría" value="{{ filtros.categoria }}">
+    <button type="submit">Buscar</button>
+</form>
 
-    <ul id="tblBody">
+<ul id="tblBody">
     {% for p in filas %}
         <li>
             {% if p.imagen_1_id %}
@@ -29,6 +29,7 @@
             {% else %}
                 <span>Sin imagen</span>
             {% endif %}
+            <div>Precio: {{ p.precio|default:"-" }}</div>
             <div>
                 <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
                     <strong>{{ p.nombre }}</strong>
@@ -41,102 +42,97 @@
     {% empty %}
         Sin resultados
     {% endfor %}
-    </ul>
+</ul>
 
-    <!-- Paginador -->
-    <div id="pager" style="margin-top:10px;">
-        <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-        <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
-        <span>Página {{ page }} de {{ total_pages }}</span>
-        <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;</button>
-        <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último &raquo;</button>
-    </div>
+<!-- Paginador -->
+<div id="pager" style="margin-top:10px;">
+    <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+    <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+    </button>
+    <span>Página {{ page }} de {{ total_pages }}</span>
+    <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig
+        &rsaquo;
+    </button>
+    <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último
+        &raquo;
+    </button>
+</div>
 
 
-    <script>
-        const formBuscar = document.getElementById('formBuscar');
-        function irPagina(p) {
-            if (p < 1) p = 1;
-            buscar(p);
-        }
+<script>
+    (() => {
+        const $ = id => document.getElementById(id);
 
-        function queryParamsFromForm() {
-            const fd = new FormData(formBuscar);
-            const q = new URLSearchParams();
-            for (const [k, v] of fd.entries()) {
-                if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
-            }
-            return q;
-        }
+        const formBuscar = $('formBuscar');
+        const tbody = $('tblBody');
+        const pager = $('pager');
         const API_LISTAR = "{% url 'catalogoProductos:api_listar' %}";
-        function buscar(page = 1) {
-            const q = queryParamsFromForm();
-            q.set('page', String(page));
-            fetch(`${API_LISTAR}?${q.toString()}`)
-                .then(r => r.json())
-                .then(resp => {
-                    if (!resp.ok) {
-                        alert('Error al listar');
-                        return;
-                    }
-                    renderTabla(resp.rows);
-                    renderPaginador(resp.page, resp.total_pages);
-                })
-                .catch(() => alert('No se pudo obtener la lista'));
+        const buildDetailUrl = id => "{% url 'vistaProducto:detalle_producto' 0 %}".replace("0/", `${id}/`);
+        const buildImgUrl = id => "{% url 'catalogoProductos:api_imagen' 0 %}".replace("0/", `${id}/`);
+
+        const qFromForm = () => {
+            const q = new URLSearchParams(new FormData(formBuscar));
+            [...q.keys()].forEach(k => {
+                if (!q.get(k)?.trim()) q.delete(k);
+            });
+            return q;
+        };
+
+        async function buscar(page = 1) {
+            const q = qFromForm();
+            q.set('page', page);
+            try {
+                const r = await fetch(`${API_LISTAR}?${q}`);
+                const resp = await r.json();
+                if (!resp.ok) return alert('Error al listar');
+                renderTabla(resp.rows);
+                renderPaginador(resp.page, resp.total_pages);
+            } catch {
+                alert('No se pudo obtener la lista');
+            }
         }
 
-        const buildDetailUrl = id => "{% url 'vistaProducto:detalle_producto' 0 %}".replace("0/", `${id}/`);
-        const buildImgUrl    = id => "{% url 'catalogoProductos:api_imagen' 0 %}".replace("0/", `${id}/`);
         function renderTabla(rows) {
-            const tbody = document.getElementById('tblBody');
-            tbody.innerHTML = '';
-            if (!rows || rows.length === 0) {
-                const cont = document.createElement('div');
-                cont.innerHTML = `<div>Sin resultados</div>`;
-                tbody.appendChild(cont);
+            if (!rows?.length) {
+                tbody.innerHTML = `<div>Sin resultados</div>`;
                 return;
             }
-            for (const p of rows) {
-                const li = document.createElement('li');
-                const imgHtml = p.imagen_1_id
-                    ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${p.nombre}">`
-                    : `<span>Sin imagen</span>`;
-                li.innerHTML = `
-                    ${imgHtml}
-                    <div>
-                    <a href="${buildDetailUrl(p.id)}"><strong>${p.nombre}</strong></a>
-                    </div>
-                    <div>Autor: ${(p.autor || '-')}</div>
-                    <div>Calificación: ${p.calificacion_promedio ?? '-'}</div>
-                    <div>${p.compras ?? 0} compras</div>
-                `;
-                tbody.appendChild(li);
-            }
+            tbody.innerHTML = rows.map(p => `
+      <li>
+        ${p.imagen_1_id ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${p.nombre}">` : `<span>Sin imagen</span>`}
+        <div>Precio: ${p.precio ?? '-'}</div>
+        <div><a href="${buildDetailUrl(p.id)}"><strong>${p.nombre}</strong></a></div>
+        <div>Autor: ${p.autor || '-'}</div>
+        <div>Calificación: ${p.calificacion_promedio ?? '-'}</div>
+        <div>${p.compras ?? 0} compras</div>
+      </li>
+    `).join('');
         }
-
 
         function renderPaginador(page, total) {
-            const pager = document.getElementById('pager');
-            const disPrim = page <= 1 ? 'disabled' : '';
-            const disAnt  = page <= 1 ? 'disabled' : '';
-            const disSig  = page >= total ? 'disabled' : '';
-            const disUlt  = page >= total ? 'disabled' : '';
+            const b = (label, target, disabled) =>
+                `<button type="button" onclick="irPagina(${target})" ${disabled ? 'disabled' : ''}>${label}</button>`;
 
-            pager.innerHTML = `
-              <button type="button" onclick="irPagina(1)" ${disPrim}>&laquo; Primero</button>
-              <button type="button" onclick="irPagina(${page - 1})" ${disAnt}>&lsaquo; Ant</button>
-              <span>Página ${page} de ${total}</span>
-              <button type="button" onclick="irPagina(${page + 1})" ${disSig}>Sig &rsaquo;</button>
-              <button type="button" onclick="irPagina(${total})" ${disUlt}>Último &raquo;</button>
-            `;
+            pager.innerHTML = [
+                b('&laquo; Primero', 1, page <= 1),
+                b('&lsaquo; Ant', page - 1, page <= 1),
+                `<span>Página ${page} de ${total}</span>`,
+                b('Sig &rsaquo;', page + 1, page >= total),
+                b('Último &raquo;', total, page >= total)
+            ].join('');
         }
 
-        formBuscar.addEventListener('submit', (e) => {
+        window.irPagina = p => buscar(Math.max(1, p));
+
+        formBuscar.addEventListener('submit', e => {
             e.preventDefault();
             buscar(1);
         });
 
-    </script>
+        // carga inicial
+        buscar(1);
+    })();
+</script>
 </body>
 
 </html>

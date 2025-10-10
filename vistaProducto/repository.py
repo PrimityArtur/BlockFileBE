@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional, Tuple, List, Dict, Any, Literal
 from django.db import connection
 
@@ -114,26 +115,38 @@ def listar_comentarios_producto(
         for r in rows
     ]
 
-def registrar_compra(
-        producto_id: int,
-        usuario_id: int
-) -> Literal["created","exists","invalid"]:
+# =============== COMPRAR PRODUCTO
+def get_producto_precio(producto_id: int) -> Optional[Decimal]:
+    sql = 'SELECT d.precio FROM "PRODUCTO" p JOIN "DETALLES_PRODUCTO" d ON d.id_producto=p.id_producto WHERE p.id_producto=%s AND p.activo=TRUE'
     with connection.cursor() as cur:
-        cur.execute(
-            'SELECT 1 FROM "PRODUCTO" WHERE id_producto=%s AND activo=TRUE', [producto_id])
-        if cur.fetchone() is None:
-            return "invalid"
+        cur.execute(sql, [producto_id])
+        row = cur.fetchone()
+    return Decimal(row[0]) if row else None
 
-        cur.execute(
-            '''
-            INSERT INTO "COMPRA_PRODUCTO"(id_producto, id_usuario)
-            VALUES (%s, %s)
-            ON CONFLICT (id_producto, id_usuario) DO NOTHING
-            ''',
-            [producto_id, usuario_id],
-        )
-        return "created" if cur.rowcount > 0 else "exists"
+def get_cliente_saldo_for_update(usuario_id: int) -> Optional[Decimal]:
+    sql = 'SELECT saldo FROM "CLIENTE" WHERE id_usuario=%s FOR UPDATE'
+    with connection.cursor() as cur:
+        cur.execute(sql, [usuario_id])
+        row = cur.fetchone()
+    return Decimal(row[0]) if row else None
 
+def existe_compra(producto_id: int, usuario_id: int) -> bool:
+    sql = 'SELECT 1 FROM "COMPRA_PRODUCTO" WHERE id_producto=%s AND id_usuario=%s'
+    with connection.cursor() as cur:
+        cur.execute(sql, [producto_id, usuario_id])
+        return cur.fetchone() is not None
+
+def insert_compra(producto_id: int, usuario_id: int) -> None:
+    sql = 'INSERT INTO "COMPRA_PRODUCTO"(id_producto, id_usuario) VALUES (%s, %s) ON CONFLICT (id_producto, id_usuario) DO NOTHING'
+    with connection.cursor() as cur:
+        cur.execute(sql, [producto_id, usuario_id])
+
+def reducir_saldo(usuario_id: int, monto: Decimal) -> bool:
+    sql = 'UPDATE "CLIENTE" SET saldo = saldo - %s WHERE id_usuario = %s AND saldo >= %s'
+    with connection.cursor() as cur:
+        cur.execute(sql, [monto, usuario_id, monto])
+        return cur.rowcount == 1
+# ========================
 
 def archivo_producto(
         producto_id: int
@@ -149,7 +162,7 @@ def archivo_producto(
     if not row:
         return None
     nombre, archivo = row
-    return (str(nombre), bytes(archivo))
+    return str(nombre), bytes(archivo)
 
 
 

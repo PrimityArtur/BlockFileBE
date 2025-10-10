@@ -34,6 +34,7 @@ def listar_pagina(
         p.id_producto                         AS id,
         p.nombre                              AS nombre,
         COALESCE(a.nombre, '')                AS autor,
+        d.precio                              AS precio,
         img.id_imagen_producto                AS imagen_1_id,
         cal.avg_calificacion                  AS calificacion_promedio,
         COALESCE(comp.cnt_compras, 0)         AS compras,
@@ -59,9 +60,10 @@ def listar_pagina(
         FROM "COMPRA_PRODUCTO"
         GROUP BY id_producto
       ) comp ON comp.id_producto = p.id_producto
+      LEFT JOIN "DETALLES_PRODUCTO" d ON d.id_producto = p.id_producto
       WHERE {" AND ".join(where)}
     )
-    SELECT id, nombre, autor, imagen_1_id, calificacion_promedio, compras, total
+    SELECT id, nombre, autor, precio, imagen_1_id, calificacion_promedio, compras, total
     FROM base
     WHERE rn > %s AND rn <= %s
     ORDER BY id ASC;
@@ -79,11 +81,12 @@ def listar_pagina(
             "id": pid,
             "nombre": nombre,
             "autor": autor,
+            "precio": precio,
             "imagen_1_id": img_id,
             "calificacion_promedio": float(calif) if calif is not None else None,
             "compras": int(compras or 0),
         }
-        for pid, nombre, autor, img_id, calif, compras, _ in rows
+        for pid, nombre, autor, precio, img_id, calif, compras, _ in rows
     ]
     return filas, total_pages
 

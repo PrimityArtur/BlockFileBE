@@ -1,4 +1,5 @@
 import magic
+from django.contrib import messages
 
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -18,8 +19,21 @@ def detalle_producto_view(request, producto_id: int):
     if request.method == "POST":
         if not cliente_id:
             return HttpResponseForbidden("Debes iniciar sesión para comprar.")
-        _res = repo.registrar_compra(producto_id, cliente_id)
 
+        result = serv.validar_y_registrar_compra(producto_id, cliente_id)
+        if result == "created":
+            messages.success(request, "¡Compra realizada con éxito!")
+        elif result == "exists":
+            messages.info(request, "Ya habías comprado este producto.")
+        elif result == "invalid":
+            messages.error(request, "Producto no disponible.")
+        elif result == "insufficient":
+            messages.error(request, "Saldo insuficiente.")
+        elif result == "no_cliente":
+            messages.error(request, "No se encontró el cliente.")
+        return redirect(request.path)
+
+    #cargar detalles
     detalle = repo.obtener_detalle_producto(producto_id, cliente_id)
     if not detalle:
         raise Http404("Producto no encontrado")

@@ -89,13 +89,6 @@ def perfil_admin_view(request):
 
     return render(request, "users/PerfilAdministrador.html", ctx)
 
-def perfil_usuario_view(request):
-    ctx = {
-        "errors": None,
-        "success": None
-    }
-
-    return render(request, "users/PerfilUsuario.html", ctx)
 
 def logout_view(request):
     request.session.flush()  # limpia toda la sesión

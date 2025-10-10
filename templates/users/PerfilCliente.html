@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PerfilCliente</title>
+</head>
+<body>
+<header>
+    <h1>BlockFile</h1>
+    <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+    <a class="btn" href="{% url 'Rankings:rankings' %}">Ranking</a>
+    <a class="btn" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
+    <a class="btn" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+</header>
+
+{#  Perfil del cliente, campos editables ( Nombre de Usuario, correo, contraseña ) No editables (Saldo, Numero de compras)      #}
+<div>
+    <h1>Perfil del Cliente</h1>
+
+    {% if errors %}
+        <div>
+            <strong>Errores:</strong>
+            <pre>{{ errors }}</pre>
+        </div>
+    {% endif %}
+
+    <form id="formPerfil" method="post" action="">
+        {% csrf_token %}
+        <div>
+            <label>Nombre de Usuario:</label><br>
+            <input type="text" name="nombre_usuario" maxlength="10" required
+                   value="{{ perfil.nombre_usuario }}" readOnly>
+        </div>
+
+        <div>
+            <label>Correo:</label><br>
+            <input type="email" name="correo" maxlength="50" required
+                   value="{{ perfil.correo }}" readOnly>
+        </div>
+
+        <div>
+            <label>Contraseña:</label><br>
+            <input type="password" name="contrasena" minlength="4" required
+                   value="{{ perfil.contrasena }}" readOnly>
+        </div>
+
+        <div>
+            <label>Saldo:</label><br>
+            <input type="text" value="S/ {{ perfil.saldo }}" disabled>
+        </div>
+
+        <div>
+            <label>N.º de compras:</label><br>
+            <input type="text" value="{{ perfil.num_compras }}" disabled>
+        </div>
+
+        <!-- Botones -->
+        <div id="botonesLectura">
+            <button type="button" id="btnEditar">Editar</button>
+        </div>
+
+        <div id="botonesEdicion" style="display:none;">
+            <button type="submit">Guardar</button>
+            <button type="button" id="btnCancelar">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<div>
+    {# Lista de Productos comprados por el  cliente #}
+    <ul id="tblBody">
+        {% for p in filas %}
+            <li>
+                {% if p.imagen_1_id %}
+                    <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}" alt="Imagen de {{ p.nombre }}">
+                {% else %}
+                    <span>Sin imagen</span>
+                {% endif %}
+                <div>Precio: {{ p.precio|default:"-" }}</div>
+
+                <div>
+                    <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
+                        <strong>{{ p.nombre }}</strong>
+                    </a>
+                </div>
+                <div>Autor: {{ p.autor|default:"-" }}</div>
+                <div>Calificación: {{ p.calificacion_promedio|default:"-" }}</div>
+                <div>{{ p.compras }} compras</div>
+            </li>
+        {% empty %}
+            Sin resultados
+        {% endfor %}
+    </ul>
+    <!-- Paginador -->
+    <div id="pager" style="margin-top:10px;">
+        <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+        <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+        </button>
+        <span>Página {{ page }} de {{ total_pages }}</span>
+        <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig
+            &rsaquo;
+        </button>
+        <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>
+            Último &raquo;
+        </button>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("formPerfil");
+        const btnEditar = document.getElementById("btnEditar");
+        const btnCancelar = document.getElementById("btnCancelar");
+        const bLectura = document.getElementById("botonesLectura");
+        const bEdicion = document.getElementById("botonesEdicion");
+
+        const campos = ["nombre_usuario", "correo", "contrasena"].map(
+            n => form.querySelector(`[name="${n}"]`)
+        );
+
+        const originales = Object.fromEntries(campos.map(c => [c.name, c.value]));
+
+        btnEditar.onclick = () => {
+            campos.forEach(c => c.readOnly = false);
+            bLectura.style.display = "none";
+            bEdicion.style.display = "block";
+        };
+
+        btnCancelar.onclick = () => {
+            campos.forEach(c => {
+                c.readOnly = true;
+                c.value = originales[c.name];
+            });
+            bLectura.style.display = "block";
+            bEdicion.style.display = "none";
+        };
+    });
+
+
+    function irPagina(n) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("page", n);
+        window.location.href = url.toString();
+    }
+
+</script>
+
+</body>
+</html>

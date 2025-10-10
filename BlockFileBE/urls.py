@@ -26,5 +26,6 @@ urlpatterns = [
     path('catalogo-productos/', include('catalogoProductos.urls', namespace='catalogoProductos')),
     path('vista-producto/', include('vistaProducto.urls', namespace='vistaProducto')),
 
-    path('rank/', include('Rankings.urls', namespace='Rankings'))
+    path('rank/', include('Rankings.urls', namespace='Rankings')),
+    path('perfil-cliente/', include('PerfilCliente.urls', namespace='PerfilCliente')),
 ]

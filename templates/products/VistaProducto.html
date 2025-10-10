@@ -5,62 +5,72 @@
     <title>{{ p.nombre }}</title>
 </head>
 <body>
-    <header>
-        <h1>BlockFile</h1>
-        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-        <a class="btn" href="{% url 'Rankings:rankingsPMComprados' %}">Ranking</a>
-        <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Perfil</a>
-        <a class="btn" href="{% url 'users:logout' %}">Cerrar Sesión</a>
-    </header>
+<header>
+    <h1>BlockFile</h1>
+    <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+    <a class="btn" href="{% url 'Rankings:rankings' %}">Ranking</a>
+    <a class="btn" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
+    <a class="btn" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+</header>
 
+{% if messages %}
     <div>
-        <!-- Sección para el nombre, la imagen principal, carrusel y descripción -->
-        <h2>{{ p.nombre }}</h2>
-
-        {% if p.imagen_ids %}
-            <img src="{% url 'vistaProducto:api_imagen' p.imagen_ids.0 %}" alt="Imagen principal">
-
-            {% if p.imagen_ids|length > 1 %}
-                <div>
-                    {% for img_id in p.imagen_ids|slice:"1:" %}
-                        <img src="{% url 'vistaProducto:api_imagen' img_id %}" alt="Imagen {{ forloop.counter }}">
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% else %}
-            <p>Sin imágenes disponibles.</p>
-        {% endif %}
-
-        <p>{{ p.descripcion }}</p>
+        {% for message in messages %}
+            <p class="msg-compra">
+                {{ message }}
+            </p>
+        {% endfor %}
     </div>
+{% endif %}
 
-    <div>
-        <!-- Sección para precio, saldo y botón de comprar -->
-        <p>Precio: S/ {{ p.precio|floatformat:2 }}</p>
+<div>
+    <!-- Sección para el nombre, la imagen principal, carrusel y descripción -->
+    <h2>{{ p.nombre }}</h2>
 
-        {% if p.saldo_cliente is not None %}
-            <p>Tu saldo actual: S/ {{ p.saldo_cliente|floatformat:2 }}</p>
+    {% if p.imagen_ids %}
+        <img src="{% url 'vistaProducto:api_imagen' p.imagen_ids.0 %}" alt="Imagen principal">
+
+        {% if p.imagen_ids|length > 1 %}
+            <div>
+                {% for img_id in p.imagen_ids|slice:"1:" %}
+                    <img src="{% url 'vistaProducto:api_imagen' img_id %}" alt="Imagen {{ forloop.counter }}">
+                {% endfor %}
+            </div>
         {% endif %}
+    {% else %}
+        <p>Sin imágenes disponibles.</p>
+    {% endif %}
 
-        {% if not mostrar_acciones %}
-            <form method="post" action="">
-                {% csrf_token %}
-                <button type="submit">Comprar</button>
-            </form>
-        {% endif %}
-    </div>
+    <p>{{ p.descripcion }}</p>
+</div>
 
-    <div>
-        <!-- Sección para calificación promedio, compras, autor, versión, categoría, fecha -->
-        <p>Calificación promedio: {{ p.calificacion_promedio|default:"-" }}</p>
-        <p>Número de compras: {{ p.compras }}</p>
-        <p>Autor: {{ p.autor|default:"-" }}</p>
-        <p>Versión: {{ p.version|default:"-" }}</p>
-        <p>Categoría: {{ p.categoria|default:"-" }}</p>
-        <p>Fecha de publicación: {{ p.fecha_publicacion|date:"Y-m-d H:i" }}</p>
-    </div>
+<div>
+    <!-- Sección para precio, saldo y botón de comprar -->
+    <p>Precio: S/ {{ p.precio|floatformat:2 }}</p>
 
-    {% if mostrar_acciones %}
+    {% if p.saldo_cliente is not None %}
+        <p>Tu saldo actual: S/ {{ p.saldo_cliente|floatformat:2 }}</p>
+    {% endif %}
+
+    {% if not mostrar_acciones %}
+        <form method="post" action="">
+            {% csrf_token %}
+            <button type="submit">Comprar</button>
+        </form>
+    {% endif %}
+</div>
+
+<div>
+    <!-- Sección para calificación promedio, compras, autor, versión, categoría, fecha -->
+    <p>Calificación promedio: {{ p.calificacion_promedio|default:"-" }}</p>
+    <p>Número de compras: {{ p.compras }}</p>
+    <p>Autor: {{ p.autor|default:"-" }}</p>
+    <p>Versión: {{ p.version|default:"-" }}</p>
+    <p>Categoría: {{ p.categoria|default:"-" }}</p>
+    <p>Fecha de publicación: {{ p.fecha_publicacion|date:"Y-m-d H:i" }}</p>
+</div>
+
+{% if mostrar_acciones %}
     <div>
         <!-- Sección visible solo si el cliente compró el producto -->
         <form method="post">
@@ -85,85 +95,83 @@
 
         <!-- Modal para calificar -->
         <div id="modalCalificar" style="display:none;">
-          <div id="modalContenidoCalificar">
-            <h3>Calificar Producto</h3>
-            <form id="formCalificar" method="post" action="{% url 'vistaProducto:calificar_producto' p.id %}">
-              {% csrf_token %}
-              <label for="inpCalificacion">Selecciona una calificación (1–5):</label>
-              <input type="number" id="inpCalificacion" name="calificacion" min="1" max="5" required>
-              <br>
-              <button type="submit">Guardar</button>
-              <button type="button" id="btnCerrarCalificar">Cancelar</button>
-            </form>
-          </div>
+            <div id="modalContenidoCalificar">
+                <h3>Calificar Producto</h3>
+                <form id="formCalificar" method="post" action="{% url 'vistaProducto:calificar_producto' p.id %}">
+                    {% csrf_token %}
+                    <label for="inpCalificacion">Selecciona una calificación (1–5):</label>
+                    <input type="number" id="inpCalificacion" name="calificacion" min="1" max="5" required>
+                    <br>
+                    <button type="submit">Guardar</button>
+                    <button type="button" id="btnCerrarCalificar">Cancelar</button>
+                </form>
+            </div>
         </div>
 
         <!-- Modal para comentar -->
         <div id="modalComentar" style="display:none;">
-          <div id="modalContenidoComentar">
-            <h3>Comentar Producto</h3>
-            <form id="formComentar" method="post" action="{% url 'vistaProducto:comentar_producto' p.id %}">
-              {% csrf_token %}
-              <label for="inpDescripcion">Escribe tu comentario:</label><br>
-              <textarea id="inpDescripcion" name="descripcion" rows="4" cols="50" required></textarea><br>
-              <button type="submit">Enviar</button>
-              <button type="button" id="btnCerrarComentar">Cancelar</button>
-            </form>
-          </div>
+            <div id="modalContenidoComentar">
+                <h3>Comentar Producto</h3>
+                <form id="formComentar" method="post" action="{% url 'vistaProducto:comentar_producto' p.id %}">
+                    {% csrf_token %}
+                    <label for="inpDescripcion">Escribe tu comentario:</label><br>
+                    <textarea id="inpDescripcion" name="descripcion" rows="4" cols="50" required></textarea><br>
+                    <button type="submit">Enviar</button>
+                    <button type="button" id="btnCerrarComentar">Cancelar</button>
+                </form>
+            </div>
         </div>
 
     </div>
-    {% endif %}
+{% endif %}
 
-    <div>
-        <!-- Sección de comentarios -->
-        <h3>Comentarios</h3>
-        {% if comentarios %}
-            {% for c in comentarios %}
-                <div>
-                    <p><strong>{{ c.cliente }}</strong> | ⭐ {{ c.calificacion|default:"-" }} | {{ c.fecha|date:"Y-m-d H:i" }}</p>
-                    <p>{{ c.descripcion }}</p>
-                </div>
-                <hr>
-            {% endfor %}
-        {% else %}
-            <p>No hay comentarios para este producto.</p>
-        {% endif %}
-    </div>
+<div>
+    <!-- Sección de comentarios -->
+    <h3>Comentarios</h3>
+    {% if comentarios %}
+        {% for c in comentarios %}
+            <div>
+                <p><strong>{{ c.cliente }}</strong> | ⭐ {{ c.calificacion|default:"-" }}
+                    | {{ c.fecha|date:"Y-m-d H:i" }}</p>
+                <p>{{ c.descripcion }}</p>
+            </div>
+            <hr>
+        {% endfor %}
+    {% else %}
+        <p>No hay comentarios para este producto.</p>
+    {% endif %}
+</div>
 
 </body>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Calificar
-        const modalCal = document.getElementById("modalCalificar");
-        const btnOpenCal = document.getElementById("btnAbrirCalificar");
-        const btnCloseCal = document.getElementById("btnCerrarCalificar");
-        const formCal = document.getElementById("formCalificar");
+        const $ = id => document.getElementById(id);
 
-        btnOpenCal.onclick = () => modalCal.style.display = "block";
-        btnCloseCal.onclick = () => modalCal.style.display = "none";
-        formCal.onsubmit = async (e) => {
-            e.preventDefault();
-            await fetch(formCal.action, { method: "POST", body: new FormData(formCal) });
-            modalCal.style.display = "none";
-            location.reload();
-        };
+        // Enlaza abrir/cerrar/enviar de un modal en una sola función
+        function wireModal(openBtnId, modalId, closeBtnId, formId) {
+            const openBtn = $(openBtnId),
+                closeBtn = $(closeBtnId),
+                modal = $(modalId),
+                form = $(formId);
 
-      // Comentar
-        const modalCom = document.getElementById("modalComentar");
-        const btnOpenCom = document.getElementById("btnAbrirComentar");
-        const btnCloseCom = document.getElementById("btnCerrarComentar");
-        const formCom = document.getElementById("formComentar");
+            openBtn.onclick = () => modal.style.display = "block";
+            closeBtn.onclick = () => modal.style.display = "none";
+            form.onsubmit = async e => {
+                e.preventDefault();
+                await fetch(form.action, {method: "POST", body: new FormData(form)});
+                modal.style.display = "none";
+                location.reload();
+            };
+        }
+        // Calificar y Comentar
+        wireModal("btnAbrirCalificar", "modalCalificar", "btnCerrarCalificar", "formCalificar");
+        wireModal("btnAbrirComentar", "modalComentar", "btnCerrarComentar", "formComentar");
 
-        btnOpenCom.onclick = () => modalCom.style.display = "block";
-        btnCloseCom.onclick = () => modalCom.style.display = "none";
-        formCom.onsubmit = async (e) => {
-            e.preventDefault();
-            await fetch(formCom.action, { method: "POST", body: new FormData(formCom) });
-            modalCom.style.display = "none";
-            location.reload();
-        };
+        // Ocultar mensajes de compra
+        setTimeout(() => {
+            document.querySelectorAll(".msg-compra").forEach(n => n.remove());
+        }, 4000);
     });
 </script>
 

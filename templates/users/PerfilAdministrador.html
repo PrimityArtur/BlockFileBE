@@ -68,49 +68,44 @@
 </form>
 
 <script>
-    (function () {
-        const nombre = document.getElementById('inp-nombre');
-        const correo = document.getElementById('inp-correo');
-        const contrasena = document.getElementById('inp-contrasena');
-        const btnEditar = document.getElementById('btn-editar');
-        const btnGuardar = document.getElementById('btn-guardar');
-        const btnCancelar = document.getElementById('btn-cancelar');
+    (() => {
+        const $ = id => document.getElementById(id);
 
-        let cache = {
+        const form = $('form-admin');
+        const nombre = $('inp-nombre');
+        const correo = $('inp-correo');
+        const pass = $('inp-contrasena');
+
+        const btnEdit = $('btn-editar');
+        const btnSave = $('btn-guardar');
+        const btnCancel = $('btn-cancelar');
+
+        const original = {
             nombre: nombre.value,
             correo: correo.value,
-            contrasena: contrasena.value
+            pass: pass.value
         };
 
-        function setEditMode(edit) {
-            [nombre, correo, contrasena].forEach(inp => {
-                if (inp) inp.readOnly = !edit;
-            });
-            btnEditar.style.display = edit ? 'none' : '';
-            btnGuardar.style.display = edit ? '' : 'none';
-            btnCancelar.style.display = edit ? '' : 'none';
-            if (edit) {
-                cache = {nombre: nombre.value, correo: correo.value, contrasena: contrasena ? contrasena.value : ""};
-            }
+        function setMode(edit) {
+            [nombre, correo, pass].forEach(i => i.readOnly = !edit);
+            btnEdit.style.display = edit ? 'none' : '';
+            btnSave.style.display = edit ? '' : 'none';
+            btnCancel.style.display = edit ? '' : 'none';
         }
 
-        btnEditar.addEventListener('click', () => {
-            setEditMode(true);
+        btnEdit.onclick = () => {
+            setMode(true);
             nombre.focus();
-            const v = nombre.value;
-            nombre.value = '';
-            nombre.value = v;
-        });
+        };
+        btnCancel.onclick = () => {
+            nombre.value = original.nombre;
+            correo.value = original.correo;
+            pass.value = original.pass;
+            setMode(false);
+        };
 
-        btnCancelar.addEventListener('click', () => {
-            nombre.value = cache.nombre;
-            correo.value = cache.correo;
-            if (contrasena) contrasena.value = cache.contrasena;
-            setEditMode(false);
-        });
-        // Al enviar, dejamos modo lectura; el servidor validará nuevamente
-        document.getElementById('form-admin').addEventListener('submit', function () {
-        });
+        // (opcional) al enviar no hacemos nada extra: el servidor valida y responde
+        form.addEventListener('submit', () => setMode(false));
     })();
 </script>
 </body>

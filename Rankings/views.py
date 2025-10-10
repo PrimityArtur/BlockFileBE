@@ -13,7 +13,7 @@ from core.utils import PER_PAGE
 
 
 @require_http_methods(["GET"])
-def ranking_productos_mas_comprados_view(request):
+def rankings_view(request):
     tab = request.GET.get("tab", "pmc")
     page_pmc   = int(request.GET.get("pmc", 1))
     page_mc    = int(request.GET.get("mc", 1))

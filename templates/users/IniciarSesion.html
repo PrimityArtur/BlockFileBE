@@ -1,35 +1,54 @@
+<!-- templates/users/IniciarSesion.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <title>Iniciar Sesión</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    {% load static %}
+    <!-- Sistema CSS modular -->
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=3">
 </head>
 <body>
-<h1>Iniciar Sesión</h1>
 
-{% if errors %}
-    <div>
-        <strong>Errores:</strong>
-        <pre>{{ errors }}</pre>
-    </div>
-{% endif %}
+<header>
+    <h1>BlockFile</h1>
+</header>
 
-<form method="post" action="">
-    {% csrf_token %}
-    <div>
-        <label>Nombre de usuario</label><br>
-        <input type="text" name="nombre" maxlength="10" required>
-    </div>
-    <div>
-        <label>Contraseña</label><br>
-        <input type="password" name="contrasena" required>
-    </div>
-    <div style="margin-top: 8px;">
-        <button type="submit">Iniciar sesión</button>
-        <a href="{% url 'users:registrarse' %}">
-            <button type="button">Ir a Registrarse</button>
-        </a>
-    </div>
-</form>
+<main class="center-content">
+    <section class="card p-5" style="max-width: 420px; width: 100%;">
+        <h1 class="text-center mb-4">Iniciar Sesión</h1>
+
+        {% if errors %}
+            <div class="alert alert--danger mb-3">
+                <strong>Errores:</strong>
+                <pre class="mt-1">{{ errors }}</pre>
+            </div>
+        {% endif %}
+
+        <form method="post" action="" class="grid gap-4">
+            {% csrf_token %}
+            <div>
+                <label for="nombre">Nombre de usuario</label>
+                <input id="nombre" type="text" name="nombre" maxlength="10" required>
+            </div>
+            <div>
+                <label for="contrasena">Contraseña</label>
+                <input id="contrasena" type="password" name="contrasena" required>
+            </div>
+
+            <div class="modal__actions mt-3">
+                <button type="submit" class="btn">Iniciar sesión</button>
+                <a href="{% url 'users:registrarse' %}" class="btn btn--muted">Ir a Registrarse</a>
+            </div>
+        </form>
+    </section>
+</main>
+
 </body>
 </html>

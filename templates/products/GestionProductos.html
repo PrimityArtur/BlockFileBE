@@ -1,148 +1,210 @@
-<!-- templates/products/GestionProductos.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <title>Gestión de Productos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    {% load static %}
+    <!-- Sistema CSS modular -->
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
 </head>
 <body>
 <header>
     <h1>BlockFile</h1>
-    <a class="btn" href="{% url 'users:perfil_admin' %}">Perfil</a>
-    <a class="btn" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
-    <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Categorias</a>
-    <a class="btn" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+    <nav>
+        <a class="btn btn--ghost" href="{% url 'users:perfil_admin' %}">Perfil</a>
+        <a class="btn btn--ghost" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
+        <a class="btn btn--ghost" href="{% url 'gestorCategorias:gestion' %}">Categorías</a>
+        <a class="btn btn--ghost" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+    </nav>
 </header>
 
-<h1>Gestión de Productos</h1>
+<main>
+    <section class="container">
+        <div class="between flex wrap items-end mb-4">
+            <h1 class="mb-0">Gestión de Productos</h1>
+            <button type="button" class="btn" id="btnAgregar">Agregar</button>
+        </div>
 
-<form id="formBuscar" method="get" action="">
-    <span>Buscar por:</span>
-    <input type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
-    <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-    <input type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
-    <input type="text" name="categoria" placeholder="Categoría" value="{{ filtros.categoria }}">
-    <button type="submit">Buscar</button>
-    <button type="button" id="btnAgregar">Agregar</button>
-</form>
+        <!-- Buscador -->
+        <form id="formBuscar" method="get" action="" class="card p-4">
+            <div class="form-row">
+                <div>
+                    <label for="f_id">ID</label>
+                    <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
+                </div>
+                <div>
+                    <label for="f_nombre">Nombre</label>
+                    <input id="f_nombre" type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
+                </div>
+                <div>
+                    <label for="f_autor">Autor</label>
+                    <input id="f_autor" type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
+                </div>
+                <div>
+                    <label for="f_categoria">Categoría</label>
+                    <input id="f_categoria" type="text" name="categoria" placeholder="Categoría"
+                           value="{{ filtros.categoria }}">
+                </div>
+                <div class="items-end" style="display:flex;">
+                    <button type="submit" class="btn">Buscar</button>
+                </div>
+            </div>
+        </form>
 
-<!-- Tabla -->
-<table border="1" cellpadding="6" cellspacing="0" style="margin-top:12px; width:100%; max-width:980px">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Autor</th>
-        <th>Categoría</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody id="tblBody">
-    {% for p in filas %}
-        <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.autor }}</td>
-            <td>{{ p.categoria }}</td>
-            <td>
-                <button type="button" onclick="abrirEditar({{ p.id }})">Editar</button>
-            </td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="5">Sin resultados</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        <!-- Tabla -->
+        <div class="card mt-4">
+            <div class="max-w">
+                <table aria-label="Listado de productos">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Autor</th>
+                        <th>Categoría</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tblBody">
+                    {% for p in filas %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.autor }}</td>
+                            <td>{{ p.categoria }}</td>
+                            <td class="text-right">
+                                <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">Sin resultados</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<!-- Paginador -->
-<div id="pager" style="margin-top:10px;">
-    <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-    <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-    </button>
-    <span>Página {{ page }} de {{ total_pages }}</span>
-    <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig
-        &rsaquo;
-    </button>
-    <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último
-        &raquo;
-    </button>
-</div>
+        <!-- Paginador -->
+        <div id="pager" class="mt-3"></div>
 
-<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);">
-    <div style="background:#fff; margin:40px auto; padding:16px; width:min(900px, 95%); max-height:85vh; overflow:auto;">
-        <h3 id="modalTitulo">Producto</h3>
-        <form id="formProducto">
+        <noscript>
+            <div id="pager" class="mt-3">
+                <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>&laquo;
+                    Primero
+                </button>
+                <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
+                        {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+                </button>
+                <span>Página {{ page }} de {{ total_pages }}</span>
+                <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
+                        {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
+                </button>
+                <button type="button" onclick="location.href='?page={{ total_pages }}' "
+                        {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
+                </button>
+            </div>
+        </noscript>
+    </section>
+</main>
+
+<!-- Modal (oculto por defecto; se muestra con .abierto) -->
+<div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
+    <div class="modal__dialog" role="document">
+        <div class="modal__header">
+            <span id="modalTitulo" class="modal__title">Producto</span>
+            <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
+        </div>
+
+        <form id="formProducto" class="grid gap-4" novalidate>
             <input type="hidden" id="inpId" name="id"/>
 
-            <fieldset>
-                <legend>Campos no modificables</legend>
-                <div>Fecha de subida: <span id="spFecha">—</span></div>
-                <div>Calificación (promedio): <span id="spCalif">—</span></div>
-                <div>ID: <span id="spId">—</span></div>
+            <fieldset class="border rounded p-3">
+                <legend class="text-muted">Campos no modificables</legend>
+                <div class="grid grid-2 gap-3">
+                    <div>Fecha de subida: <span id="spFecha" class="text-muted">—</span></div>
+                    <div>Calificación (promedio): <span id="spCalif" class="text-muted">—</span></div>
+                    <div>ID: <span id="spId" class="text-muted">—</span></div>
+                </div>
             </fieldset>
 
-            <fieldset style="margin-top:10px;">
+            <fieldset class="border rounded p-3">
                 <legend>Campos editables</legend>
-                <div>
-                    <label>Nombre</label><br/>
-                    <input type="text" id="inpNombre" name="nombre" maxlength="50" required/>
-                </div>
-                <div>
-                    <label>Descripción</label><br/>
-                    <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
-                </div>
-                <div>
-                    <label>Versión</label><br/>
-                    <input type="text" id="inpVersion" name="version" maxlength="50"/>
-                </div>
-                <div>
-                    <label>Precio</label><br/>
-                    <input type="number" id="inpPrecio" name="precio" min="0" step="0.01"/>
-                </div>
-                <div>
-                    <label>Autor (id)</label><br/>
-                    <input type="number" id="inpAutor" name="id_autor" min="1"/>
-                </div>
-                <div>
-                    <label>Categoría (id)</label><br/>
-                    <input type="number" id="inpCategoria" name="id_categoria" min="1"/>
-                </div>
-                <div>
-                    <label>Activo</label>
-                    <input type="checkbox" id="inpActivo" name="activo" checked/>
+                <div class="grid grid-2 gap-3">
+                    <div>
+                        <label for="inpNombre">Nombre</label>
+                        <input type="text" id="inpNombre" name="nombre" maxlength="50" required/>
+                    </div>
+                    <div>
+                        <label for="inpVersion">Versión</label>
+                        <input type="text" id="inpVersion" name="version" maxlength="50"/>
+                    </div>
+                    <div class="grid-2" style="grid-column: 1 / -1;">
+                        <div>
+                            <label for="inpPrecio">Precio</label>
+                            <input type="number" id="inpPrecio" name="precio" min="0" step="0.01"/>
+                        </div>
+                        <div>
+                            <label for="inpActivo">Activo</label><br>
+                            <input type="checkbox" id="inpActivo" name="activo" checked/>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="inpAutor">Autor (id)</label>
+                        <input type="number" id="inpAutor" name="id_autor" min="1"/>
+                    </div>
+                    <div>
+                        <label for="inpCategoria">Categoría (id)</label>
+                        <input type="number" id="inpCategoria" name="id_categoria" min="1"/>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label for="inpDescripcion">Descripción</label>
+                        <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
+                    </div>
                 </div>
             </fieldset>
 
-            <fieldset style="margin-top:10px;">
+            <fieldset class="border rounded p-3">
                 <legend>Archivo del producto</legend>
-                <div id="seccionArchivo">
-                    <div>Estado: <span id="spArchivoEstado">—</span></div>
-                    <a id="lnkArchivoDescarga" href="" target="_blank" style="display:none;">Descargar archivo</a>
-                    <br>
-                    <input type="file" id="fileProducto"/>
-                    <button type="button" id="btnSubirArchivo">Subir/Reemplazar archivo</button>
+                <div class="grid gap-2">
+                    <div>Estado: <span id="spArchivoEstado" class="text-muted">—</span></div>
+                    <a id="lnkArchivoDescarga" href="" target="_blank" class="hidden">Descargar archivo</a>
+                    <div class="form-row">
+                        <input type="file" id="fileProducto"/>
+                        <button type="button" class="btn" id="btnSubirArchivo">Subir/Reemplazar archivo</button>
+                    </div>
                 </div>
             </fieldset>
 
-            <fieldset style="margin-top:10px;">
+            <fieldset class="border rounded p-3">
                 <legend>Imágenes</legend>
-                <input type="file" id="fileImagen" accept="image/*"/>
-                <button type="button" id="btnAgregarImagen">Agregar Imagen</button>
-                <div id="listaImagenes"
-                     style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; margin-top:10px;"></div>
+                <div class="form-row">
+                    <input type="file" id="fileImagen" accept="image/*"/>
+                    <button type="button" class="btn" id="btnAgregarImagen">Agregar Imagen</button>
+                </div>
+
+                <!-- Carrusel -->
+                <div class="carousel mt-3">
+                    <div id="carouselTrack" class="carousel__track" tabindex="0"
+                         aria-label="Carrusel de imágenes"></div>
+                </div>
             </fieldset>
 
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button type="button" id="btnAceptar">Aceptar</button>
-                <button type="button" id="btnBorrar">Borrar</button>
-                <button type="button" onclick="cerrarModal()">Cerrar</button>
+            <div class="modal__actions">
+                <button type="button" class="btn" id="btnAceptar">Aceptar</button>
+                <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
+                <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
             </div>
         </form>
     </div>
 </div>
+
 <script>
     (() => {
         const $ = id => document.getElementById(id);
@@ -157,7 +219,7 @@
         const pager = $('pager');
         const modal = $('modal');
 
-        // ---- búsqueda + tabla + paginador
+        // ---- Búsqueda, tabla y paginador
         const qFromForm = () => {
             const q = new URLSearchParams(new FormData(formBuscar));
             [...q].forEach(([k, v]) => {
@@ -174,7 +236,6 @@
             renderPager(resp.page || 1, resp.total_pages || 1);
         }
 
-
         function renderPager(p, t) {
             const btn = (txt, n, dis) =>
                 `<button type="button" onclick="irPagina(${n})" ${dis ? 'disabled' : ''}>${txt}</button>`;
@@ -189,30 +250,54 @@
 
         function renderTabla(rows) {
             tblBody.innerHTML = rows.length ? rows.map(p => `
-            <tr>
-                <td>${p.id}</td>
-                <td>${p.nombre}</td>
-                <td>${p.autor || ''}</td>
-                <td>${p.categoria || ''}</td>
-                <td><button type="button" data-editar="${p.id}">Editar</button></td>
-            </tr>
-            `).join('') : `<tr><td colspan="5">Sin resultados</td></tr>`;
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.nombre}</td>
+        <td>${p.autor || ''}</td>
+        <td>${p.categoria || ''}</td>
+        <td class="text-right"><button type="button" class="btn" data-editar="${p.id}">Editar</button></td>
+      </tr>
+    `).join('') : `<tr><td colspan="5">Sin resultados</td></tr>`;
         }
 
         window.irPagina = p => buscar(Math.max(1, p));
-        formBuscar.onsubmit = e => {
+        formBuscar.addEventListener('submit', e => {
             e.preventDefault();
             buscar(1);
-        };
+        });
 
         // click en “Editar” dentro de la tabla (delegación)
-        tblBody.onclick = async e => {
+        tblBody.addEventListener('click', async e => {
             const id = e.target?.dataset?.editar;
             if (!id) return;
             abrirCon(await j(`./api/detalle/${id}/`));
-        };
+        });
 
-        // ---- modal (crear/editar)
+        // ---------- MODAL ----------
+        const btnCerrar = $('btnCerrar');
+        const btnCerrarX = $('btnCerrarX');
+
+        function abrirModal() {
+            modal.classList.add('abierto');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => $('inpNombre').focus(), 0);
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('abierto');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        btnCerrar.addEventListener('click', cerrarModal);
+        btnCerrarX.addEventListener('click', cerrarModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) cerrarModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
+        });
+
+        // ---------- Cargar datos en modal
         const fillStatic = d => {
             setTxt('spId', d?.id);
             setTxt('spFecha', d?.fecha?.slice(0, 19).replace('T', ' ') || '—');
@@ -226,21 +311,22 @@
             setVal('inpPrecio', d?.precio || '');
             setVal('inpAutor', d?.autor_id || '');
             setVal('inpCategoria', d?.categoria_id || '');
-            $('inpActivo').checked = !!d?.activo || d?.activo === undefined; // nuevo => true
+            $('inpActivo').checked = d?.activo ?? true;
         };
 
         function abrirCrear() {
             $('modalTitulo').textContent = 'Agregar producto';
             fillStatic({});
             fillForm({});
-            $('listaImagenes').innerHTML = '';
-            $('lnkArchivoDescarga').style.display = 'none';
-            modal.style.display = 'block';
+            $('lnkArchivoDescarga').classList.add('hidden');
+            setTxt('spArchivoEstado', '—');
+            clearCarousel();
+            abrirModal();
         }
 
-        $('btnAgregar').onclick = abrirCrear;
+        $('btnAgregar').addEventListener('click', abrirCrear);
 
-        function abrirCon(d) {
+        async function abrirCon(d) {
             $('modalTitulo').textContent = 'Editar producto';
             fillStatic(d);
             fillForm(d);
@@ -251,24 +337,97 @@
                 const base = "{% url 'gestorProductos:descargar_archivo_producto' 0 %}".replace("0/", "");
                 const link = $('lnkArchivoDescarga');
                 link.href = `${base}${d.id}/`;
-                link.style.display = 'inline';
+                link.classList.remove('hidden');
             } else {
                 setTxt('spArchivoEstado', 'Sin archivo');
-                $('lnkArchivoDescarga').style.display = 'none';
+                $('lnkArchivoDescarga').classList.add('hidden');
             }
 
-            // imágenes
-            const cont = $('listaImagenes');
-            cont.innerHTML = '';
-            (d?.imagenes || []).forEach(img => cont.appendChild(cardImagen(img)));
+            // imágenes al carrusel
+            clearCarousel();
+            (d?.imagenes || []).forEach(img => addCarouselItem({id: img.id, orden: img.orden}));
 
-            modal.style.display = 'block';
+            abrirModal();
         }
 
-        window.cerrarModal = () => modal.style.display = 'none';
+        window.abrirEditar = async id => abrirCon(await j(`./api/detalle/${id}/`));
 
-        // ---- acciones: guardar / borrar / subir archivo / agregar imagen
-        $('btnAceptar').onclick = async () => {
+        // ---------- Carrusel
+        const track = $('carouselTrack');
+
+        function clearCarousel() {
+            track.innerHTML = '';
+        }
+
+        function addCarouselItem(img, fileBlob) {
+            const item = document.createElement('div');
+            item.className = 'carousel__item card';
+
+            const preview = document.createElement('img');
+            preview.alt = 'Imagen del producto';
+            if (fileBlob) {
+                const rd = new FileReader();
+                rd.onload = e => preview.src = e.target.result;
+                rd.readAsDataURL(fileBlob);
+            } else {
+                preview.src = `./api/imagen/${img.id}/`;
+            }
+
+            const controls = document.createElement('div');
+            controls.className = 'carousel__item-controls';
+
+            const orden = document.createElement('input');
+            orden.type = 'number';
+            orden.min = '1';
+            orden.value = img.orden || 1;
+            orden.title = 'Orden';
+            orden.className = 'carousel__orden';
+
+            const btnSet = document.createElement('button');
+            btnSet.type = 'button';
+            btnSet.className = 'btn btn--muted';
+            btnSet.textContent = 'Orden';
+            btnSet.onclick = () => j(`./api/reordenar_imagen/${img.id}/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'orden=' + encodeURIComponent(orden.value)
+            });
+
+            const btnDel = document.createElement('button');
+            btnDel.type = 'button';
+            btnDel.className = 'btn btn--danger';
+            btnDel.textContent = 'Borrar';
+            btnDel.onclick = async () => {
+                if (!confirm('¿Borrar imagen?')) return;
+                const r = await j(`./api/borrar_imagen/${img.id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
+                if (r.ok) item.remove();
+            };
+
+            controls.append(orden, btnSet, btnDel);
+            item.append(preview, controls);
+            track.appendChild(item);
+        }
+
+
+
+        // Agregar nueva imagen (previsualiza y añade al carrusel)
+        $('btnAgregarImagen').addEventListener('click', async () => {
+            const id = $('inpId').value, f = $('fileImagen').files[0];
+            if (!id || !f) return;
+            const form = new FormData();
+            form.append('archivo', f);
+            const resp = await j(`./api/subir_imagen/${id}/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': CSRF},
+                body: form
+            });
+            if (!resp.ok) return;
+            addCarouselItem({id: resp.id_imagen, orden: track.children.length + 1}, f);
+            $('fileImagen').value = '';
+        });
+
+        // ---------- Acciones: guardar / borrar / subir archivo
+        $('btnAceptar').addEventListener('click', async () => {
             const payload = {
                 id: $('inpId').value || null,
                 nombre: $('inpNombre').value,
@@ -284,25 +443,30 @@
                 headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
                 body: JSON.stringify(payload)
             });
-            if (!payload.id && resp.id) abrirEditar(resp.id);
-            else {
+            if (!payload.id && resp.id) {
+                abrirEditar(resp.id);
+            } else {
                 cerrarModal();
-                location.reload();
             }
-        };
+        });
 
-        $('btnBorrar').onclick = async () => {
+        $('btnBorrar').addEventListener('click', async () => {
             const id = $('inpId').value;
-            if (!id) return abrirCrear();
+            if (!id) {
+                abrirCrear();
+                return;
+            }
             if (!confirm('¿Eliminar este producto?')) return;
             const resp = await j(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
             if (resp.ok) {
                 cerrarModal();
-                location.reload();
+                const u = new URL(window.location.href);
+                const page = Number(new URLSearchParams(u.search).get('page') || '1');
+                buscar(page);
             }
-        };
+        });
 
-        $('btnSubirArchivo').onclick = async () => {
+        $('btnSubirArchivo').addEventListener('click', async () => {
             const id = $('inpId').value, f = $('fileProducto').files[0];
             if (!id || !f) return;
             const form = new FormData();
@@ -313,79 +477,9 @@
                 setTxt('spArchivoEstado', 'Cargado');
                 $('fileProducto').value = '';
             }
-        };
+        });
 
-        $('btnAgregarImagen').onclick = async () => {
-            const id = $('inpId').value, f = $('fileImagen').files[0];
-            if (!id || !f) return;
-            const form = new FormData();
-            form.append('archivo', f);
-            const resp = await j(`./api/subir_imagen/${id}/`, {
-                method: 'POST',
-                headers: {'X-CSRFToken': CSRF},
-                body: form
-            });
-            if (!resp.ok) return;
-            $('listaImagenes').appendChild(cardImagen({
-                id: resp.id_imagen,
-                orden: $('listaImagenes').children.length + 1
-            }, f));
-            $('fileImagen').value = '';
-        };
-
-        // ---- tarjetas de imagen (preview, reordenar, borrar)
-        function cardImagen(img, fileBlob) {
-            const card = document.createElement('div');
-
-            const preview = document.createElement('img');
-            preview.alt = 'img';
-            preview.style.width = '100%';
-            preview.style.maxHeight = '120px';
-            preview.style.objectFit = 'cover';
-            if (fileBlob) {
-                const rd = new FileReader();
-                rd.onload = e => preview.src = e.target.result;
-                rd.readAsDataURL(fileBlob);
-            } else {
-                preview.src = `./api/imagen/${img.id}/`;
-                preview.alt = `Imagen #${img.id}`;
-            }
-
-            const orden = document.createElement('input');
-            orden.type = 'number';
-            orden.min = '1';
-            orden.value = img.orden || 1;
-            orden.style.width = '70px';
-
-            const btnSet = document.createElement('button');
-            btnSet.type = 'button';
-            btnSet.textContent = 'Actualizar orden';
-            btnSet.onclick = () => j(`./api/reordenar_imagen/${img.id}/`, {
-                method: 'POST',
-                headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'orden=' + encodeURIComponent(orden.value)
-            });
-
-            const btnDel = document.createElement('button');
-            btnDel.type = 'button';
-            btnDel.textContent = 'Borrar imagen';
-            btnDel.onclick = async () => {
-                if (!confirm('¿Borrar imagen?')) return;
-                const r = await j(`./api/borrar_imagen/${img.id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
-                if (r.ok) card.remove();
-            };
-
-            const row = document.createElement('div');
-            row.append('Número de orden:', orden, btnSet, btnDel);
-
-            card.append(preview, row);
-            return card;
-        }
-
-        // ---- helpers globales usados por otros handlers
-        window.abrirEditar = async id => abrirCon(await j(`./api/detalle/${id}/`));
-
-        // ---- carga inicial (si hay parámetros en la URL)
+        // ---------- Carga inicial
         document.addEventListener('DOMContentLoaded', () => {
             const sp = new URL(location.href).searchParams;
             buscar(parseInt(sp.get('page') || '1', 10));

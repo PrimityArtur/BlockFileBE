@@ -1,0 +1,76 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--font-size-base);
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    line-height: var(--lead);
+}
+
+img, svg, video {
+    max-width: 100%;
+    display: block;
+}
+
+button, input, textarea, select {
+    font: inherit;
+    color: inherit;
+}
+
+
+/* Enlaces */
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--color-accent-100);
+    text-decoration: underline;
+}
+
+
+/* Títulos */
+h1 {
+    font-size: 1.875rem;
+    margin: 0 0 var(--gap-4);
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin: 0 0 var(--gap-3);
+}
+
+h3 {
+    font-size: 1.25rem;
+    margin: 0 0 var(--gap-2);
+}
+
+
+/* Contenedor central opcional */
+.container {
+    width: min(1100px, 92%);
+    margin-inline: auto;
+}
+
+
+/* Tarjeta base */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--gap-4);
+    box-shadow: var(--shadow-sm);
+}
+

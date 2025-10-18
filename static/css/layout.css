@@ -1,0 +1,68 @@
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-2);
+    padding: var(--gap-3) var(--gap-4);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+header nav {
+    display: flex;
+    gap: var(--gap-2);
+    flex-wrap: wrap;
+}
+
+
+/* Sección principal */
+main {
+    padding: var(--gap-6) 0;
+}
+
+
+/* Grillas básicas */
+.grid {
+    display: grid;
+    gap: var(--gap-4);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Paginador (usa #pager existente o .pager) */
+#pager, .pager {
+    display: flex;
+    gap: var(--gap-2);
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: var(--gap-3);
+}

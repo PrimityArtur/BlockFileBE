@@ -1,0 +1,172 @@
+/***** Espaciado *****/
+.mt-1 {
+    margin-top: var(--gap-1);
+}
+
+.mt-2 {
+    margin-top: var(--gap-2);
+}
+
+.mt-3 {
+    margin-top: var(--gap-3);
+}
+
+.mt-4 {
+    margin-top: var(--gap-4);
+}
+
+.mt-6 {
+    margin-top: var(--gap-6);
+}
+
+.mt-8 {
+    margin-top: var(--gap-8);
+}
+
+.mb-1 {
+    margin-bottom: var(--gap-1);
+}
+
+.mb-2 {
+    margin-bottom: var(--gap-2);
+}
+
+.mb-3 {
+    margin-bottom: var(--gap-3);
+}
+
+.mb-4 {
+    margin-bottom: var(--gap-4);
+}
+
+.mb-6 {
+    margin-bottom: var(--gap-6);
+}
+
+.mb-8 {
+    margin-bottom: var(--gap-8);
+}
+
+.p-2 {
+    padding: var(--gap-2);
+}
+
+.p-3 {
+    padding: var(--gap-3);
+}
+
+.p-4 {
+    padding: var(--gap-4);
+}
+
+.p-6 {
+    padding: var(--gap-6);
+}
+
+.p-8 {
+    padding: var(--gap-8);
+}
+
+.gap-2 {
+    gap: var(--gap-2);
+}
+
+.gap-3 {
+    gap: var(--gap-3);
+}
+
+.gap-4 {
+    gap: var(--gap-4);
+}
+
+
+/***** Layout *****/
+.flex {
+    display: flex;
+}
+
+.inline-flex {
+    display: inline-flex;
+}
+
+.center {
+    align-items: center;
+    justify-content: center;
+}
+
+.between {
+    justify-content: space-between;
+}
+
+.wrap {
+    flex-wrap: wrap;
+}
+
+.items-end {
+    align-items: flex-end;
+}
+
+
+.w-100 {
+    width: 100%;
+}
+
+.max-w {
+    width: min(1100px, 92%);
+    margin-inline: auto;
+}
+
+
+/***** Texto *****/
+.text-muted {
+    color: var(--color-muted);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+
+/***** Bordes y fondos *****/
+.rounded {
+    border-radius: var(--radius);
+}
+
+.rounded-lg {
+    border-radius: var(--radius-lg);
+}
+
+.border {
+    border: 1px solid var(--border);
+}
+
+.bg-muted {
+    background: var(--surface-muted);
+}
+
+.bg-accent-soft {
+    background: var(--color-accent-100);
+}
+
+
+/***** Visibilidad *****/
+.hidden {
+    display: none !important;
+}
+
+.center-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: var(--gap-6);
+    background: var(--surface-muted);
+}

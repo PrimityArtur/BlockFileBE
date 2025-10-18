@@ -99,7 +99,7 @@ def listar_comentarios_producto(
     LEFT JOIN "CALIFICACION_PRODUCTO" cal
       ON cal.id_producto = cm.id_producto AND cal.id_usuario = cm.id_usuario
     WHERE cm.id_producto = %s
-    ORDER BY cm.fecha DESC, cm.id_comentario_producto DESC
+    ORDER BY cm.fecha ASC, cm.id_comentario_producto DESC
     """
     with connection.cursor() as cur:
         cur.execute(sql, [producto_id])

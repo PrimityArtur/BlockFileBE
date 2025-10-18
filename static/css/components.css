@@ -1,0 +1,322 @@
+/* Botones */
+.btn, button, [type="button"], [type="submit"], [role="button"] {
+    --_bg: var(--color-accent);
+    --_fg: #fff;
+    background: var(--_bg);
+    color: var(--_fg);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .18s ease, box-shadow .18s ease, transform .02s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:hover, button:hover {
+    background: var(--color-accent-600);
+}
+
+.btn:active, button:active {
+    transform: translateY(1px);
+}
+
+.btn--ghost {
+    --_bg: transparent;
+    --_fg: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.btn--muted {
+    --_bg: var(--surface-muted);
+    --_fg: var(--color-fg);
+}
+
+.btn--danger {
+    --_bg: var(--danger);
+}
+
+
+/* Formularios */
+form {
+    display: grid;
+    gap: var(--gap-3);
+}
+
+label {
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+input[type="text"], input[type="number"], input[type="password"], input[type="email"],
+textarea, select {
+    width: 100%;
+    background: var(--surface);
+    color: var(--color-fg);
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+
+/* Agrupador horizontal (reemplaza "display:flex; gap:8px;") */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-2);
+    align-items: end;
+}
+
+.form-row > * {
+    flex: 1 1 auto;
+    min-width: 180px;
+}
+
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+}
+
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+thead th {
+    background: var(--surface-muted);
+    font-weight: 700;
+}
+
+tr:hover td {
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+
+
+/* Badges y etiquetas */
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: .85rem;
+}
+
+.badge--ok {
+    background: color-mix(in srgb, var(--success) 14%, #fff);
+    color: var(--success);
+}
+
+.badge--warn {
+    background: color-mix(in srgb, var(--warning) 18%, #fff);
+    color: #8a5a00;
+}
+
+.badge--muted {
+    background: var(--surface-muted);
+    color: var(--color-muted);
+}
+
+
+/* Tarjetas/listas de productos (catálogo) */
+/* ===== MODAL ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none; /* Oculto por defecto */
+    background: rgba(2, 6, 23, .45);
+    backdrop-filter: blur(2px);
+    z-index: 9999; /* Encima de todo */
+    place-items: center; /* Centra el diálogo si se muestra con grid */
+}
+
+.modal.abierto {
+    display: grid; /* Se muestra al abrir */
+}
+
+.modal__dialog {
+    width: min(720px, 92%);
+    max-height: 85vh;
+    overflow: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: var(--gap-4);
+}
+
+.modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-2);
+    margin-bottom: var(--gap-3);
+}
+
+.modal__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.modal__actions {
+    display: flex;
+    gap: var(--gap-2);
+    justify-content: flex-end;
+    margin-top: var(--gap-3);
+}
+
+/* ===== Carrusel horizontal simple ===== */
+.carousel {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--gap-2);
+    align-items: center;
+}
+
+.carousel__track {
+    display: flex;
+    gap: var(--gap-3);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    padding: var(--gap-2) 2px;
+}
+
+.carousel__track::-webkit-scrollbar {
+    height: 8px;
+}
+
+.carousel__track::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    border-radius: 999px;
+}
+
+.carousel__item {
+    flex: 0 0 auto;
+    width: 250px;
+    scroll-snap-align: start;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--gap-2);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.carousel__item img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.carousel__item-controls {
+    display: flex;
+    gap: var(--gap-2);
+    align-items: center;
+    margin-top: var(--gap-2);
+}
+
+.carousel__orden {
+    width: 72px;
+}
+
+/* ===== Carrusel de miniaturas ===== */
+.carousel--thumbs .carousel__item {
+  width: 128px;            /* fijo */
+  padding: 0;              /* sin padding en miniatura */
+  border-radius: var(--radius);
+}
+
+.carousel--thumbs .carousel__item img {
+  height: 80px;            /* fijo */
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.carousel__item.is-active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+/* ===== layout catálogo ===== */
+
+.catalog-grid {
+    list-style: none;
+    padding: 0;
+    margin: var(--gap-4) 0 0 0;
+    display: grid;
+    gap: var(--gap-4);
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.catalog-grid > li {
+    margin: 0;
+    min-width: 0;
+}
+
+
+.catalog-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, box-shadow .2s ease;
+    min-width: 0;
+}
+
+
+.catalog-card__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--surface-muted);
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.catalog-card__media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-bottom: 1px solid var(--border);
+}
+
+.catalog-card__body {
+    padding: var(--gap-3);
+    display: grid;
+    gap: var(--gap-2);
+    min-width: 0;
+}
+
+.catalog-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--color-muted);
+    font-size: .9rem;
+}

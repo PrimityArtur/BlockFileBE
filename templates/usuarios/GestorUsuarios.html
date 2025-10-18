@@ -1,100 +1,141 @@
-<!-- templates/products/GestionProductos.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
     <title>Gestión de Usuarios</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    {% load static %}
+    <!-- Sistema CSS modular -->
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
 </head>
 <body>
 <header>
     <h1>BlockFile</h1>
-    <a class="btn" href="{% url 'users:perfil_admin' %}">Perfil</a>
-    <a class="btn" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
-    <a class="btn" href="{% url 'gestorCategorias:gestion' %}">Categorias</a>
-    <a class="btn" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+    <nav>
+        <a class="btn btn--ghost" href="{% url 'users:perfil_admin' %}">Perfil</a>
+        <a class="btn btn--ghost" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
+        <a class="btn btn--ghost" href="{% url 'gestorCategorias:gestion' %}">Categorías</a>
+        <a class="btn btn--ghost" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
+    </nav>
 </header>
-<h1>Gestión de Usuarios</h1>
 
-<!-- Buscador + Agregar -->
-<form id="formBuscar" method="get" action="">
-    <span>Buscar por:</span>
-    <input type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
-    <input type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-    <input type="text" name="saldo" placeholder="Saldo" value="{{ filtros.saldo }}">
-    <button type="submit">Buscar</button>
-</form>
+<main>
+    <section class="container">
+        <h1>Gestión de Usuarios</h1>
 
-<!-- Tabla -->
-<table border="1" cellpadding="6" cellspacing="0" style="margin-top:12px; width:100%; max-width:980px">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Saldo</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody id="tblBody">
-    {% for p in filas %}
-        <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.saldo }}</td>
-            <td>
-                <button type="button" onclick="abrirEditar({{ p.id }})">Editar</button>
-            </td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="5">Sin resultados</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        <!-- Buscador -->
+        <form id="formBuscar" method="get" action="" class="card p-4">
+            <div class="form-row">
+                <div>
+                    <label for="f_id">ID</label>
+                    <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
+                </div>
+                <div>
+                    <label for="f_nombre">Nombre</label>
+                    <input id="f_nombre" type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
+                </div>
+                <div>
+                    <label for="f_saldo">Saldo</label>
+                    <input id="f_saldo" type="text" name="saldo" placeholder="Saldo" value="{{ filtros.saldo }}">
+                </div>
+                <div class="items-end" style="display:flex;">
+                    <button type="submit" class="btn">Buscar</button>
+                </div>
+            </div>
+        </form>
 
-<!-- Paginador -->
-<div id="pager" style="margin-top:10px;">
-    <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-    <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-    </button>
-    <span>Página {{ page }} de {{ total_pages }}</span>
-    <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>Sig
-        &rsaquo;
-    </button>
-    <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>Último
-        &raquo;
-    </button>
-</div>
+        <!-- Tabla -->
+        <div class="card mt-4">
+            <div class="max-w">
+                <table aria-label="Listado de usuarios">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Saldo</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tblBody">
+                    {% for p in filas %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.saldo }}</td>
+                            <td class="text-right">
+                                <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">Sin resultados</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<!-- Modal simple con JS sin CSS (para migrar a Angular luego) -->
-<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);">
-    <div style="background:#fff; margin:40px auto; padding:16px; width:min(900px, 95%); max-height:85vh; overflow:auto;">
-        <h3 id="modalTitulo">Usuario</h3>
-        <form id="formUsuario">
+        <!-- Paginador -->
+        <div id="pager" class="mt-3"></div>
+        <noscript>
+            <div id="pager" class="mt-3">
+                <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>&laquo;
+                    Primero
+                </button>
+                <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
+                        {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+                </button>
+                <span>Página {{ page }} de {{ total_pages }}</span>
+                <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
+                        {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
+                </button>
+                <button type="button" onclick="location.href='?page={{ total_pages }}' "
+                        {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
+                </button>
+            </div>
+        </noscript>
+    </section>
+</main>
+
+<!-- Modal (oculto por defecto; se muestra con .abierto) -->
+<div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
+    <div class="modal__dialog" role="document">
+        <div class="modal__header">
+            <span id="modalTitulo" class="modal__title">Usuario</span>
+            <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
+        </div>
+
+        <form id="formUsuario" class="grid gap-4" novalidate>
             <input type="hidden" id="inpId" name="id"/>
 
-            <fieldset>
-                <legend>Campos no modificables</legend>
-                <div>Fecha de creación: <span id="spFecha">—</span></div>
-                <div>Nombre de Usuario: <span id="spNombre">—</span></div>
-                <div>Correo: <span id="spCorreo">—</span></div>
-                <div>ID: <span id="spId">—</span></div>
+            <fieldset class="border rounded p-3">
+                <legend class="text-muted">Campos no modificables</legend>
+                <div class="grid grid-2 gap-3">
+                    <div>Fecha de creación: <span id="spFecha" class="text-muted">—</span></div>
+                    <div>Nombre de Usuario: <span id="spNombre" class="text-muted">—</span></div>
+                    <div>Correo: <span id="spCorreo" class="text-muted">—</span></div>
+                    <div>ID: <span id="spId" class="text-muted">—</span></div>
+                </div>
             </fieldset>
 
-            <fieldset style="margin-top:10px;">
+            <fieldset class="border rounded p-3">
                 <legend>Campos editables</legend>
                 <div>
-                    <label>Saldo</label><br/>
+                    <label for="inpSaldo">Saldo</label>
                     <input type="number" id="inpSaldo" name="saldo" min="0" step="0.01"/>
                 </div>
-
             </fieldset>
 
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button type="button" id="btnAceptar">Aceptar</button>
-                <button type="button" id="btnBorrar">Borrar</button>
-                <button type="button" onclick="cerrarModal()">Cerrar</button>
+            <div class="modal__actions">
+                <button type="button" class="btn" id="btnAceptar">Aceptar</button>
+                <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
+                <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
             </div>
         </form>
     </div>
@@ -131,10 +172,6 @@
                 }
                 renderTabla(resp.rows);
                 renderPaginador(resp.page, resp.total_pages);
-                // Actualiza la URL (opcional, útil para recargar con el mismo estado)
-                const u = new URL(window.location.href);
-                u.search = q.toString();
-                window.history.replaceState(null, '', u.toString());
             })
             .catch(() => alert('No se pudo obtener la lista'));
     }
@@ -144,7 +181,7 @@
         tbody.innerHTML = '';
         if (!rows || rows.length === 0) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="5">Sin resultados</td>`;
+            tr.innerHTML = `<td colspan="4">Sin resultados</td>`;
             tbody.appendChild(tr);
             return;
         }
@@ -152,9 +189,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
         <td>${p.id}</td>
-        <td>${esc(p.nombre)}</td>
-        <td>${esc(p.saldo || '')}</td>
-        <td><button type="button" onclick="abrirEditar(${p.id})">Editar</button></td>
+        <td>${p.nombre}</td>
+        <td>${(p.saldo || '')}</td>
+        <td class="text-right"><button type="button" class="btn" onclick="abrirEditar(${p.id})">Editar</button></td>
       `;
             tbody.appendChild(tr);
         }
@@ -166,7 +203,6 @@
         const disAnt = page <= 1 ? 'disabled' : '';
         const disSig = page >= total ? 'disabled' : '';
         const disUlt = page >= total ? 'disabled' : '';
-
         pager.innerHTML = `
       <button type="button" onclick="irPagina(1)" ${disPrim}>&laquo; Primero</button>
       <button type="button" onclick="irPagina(${page - 1})" ${disAnt}>&lsaquo; Ant</button>
@@ -176,48 +212,58 @@
     `;
     }
 
-    // Utilidad simple contra XSS en textos
-    function esc(s) {
-        return String(s).replace(/[&<>"']/g, m => (
-            {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m]
-        ));
-    }
-
     function irPagina(p) {
         if (p < 1) p = 1;
         buscar(p);
     }
 
 
+    // ---------- MODAL ----------
+    const modal = document.getElementById('modal');
+    const btnCerrar = document.getElementById('btnCerrar');
+    const btnCerrarX = document.getElementById('btnCerrarX');
+
+    function abrirModal() {
+        modal.classList.add('abierto');
+        modal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => document.getElementById('inpSaldo').focus(), 0);
+    }
+
+    function cerrarModal() {
+        modal.classList.remove('abierto');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Cerrar con botones / click fuera / Escape
+    btnCerrar.addEventListener('click', cerrarModal);
+    btnCerrarX.addEventListener('click', cerrarModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) cerrarModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
+    });
+
     function abrirEditar(id) {
         fetch(`./api/detalle/${id}/`)
             .then(r => r.json())
-            .then(d => {
-                abrirModalConDatos(d);
-            });
+            .then(d => abrirModalConDatos(d));
     }
 
     function abrirModalConDatos(d) {
         document.getElementById('modalTitulo').textContent = "Editar Usuario";
         document.getElementById('inpId').value = d.id;
-        document.getElementById('spId').textContent = d.id;
+        document.getElementById('spId').textContent = d.id ?? '—';
         document.getElementById('spFecha').textContent = d.fecha?.slice(0, 19).replace('T', ' ') || '—';
         document.getElementById('spCorreo').textContent = d.correo ?? '—';
-        document.getElementById('spNombre').textContent = d.nombre || "";
-
-        document.getElementById('inpSaldo').value = d.saldo || "";
-
+        document.getElementById('spNombre').textContent = d.nombre ?? '';
+        document.getElementById('inpSaldo').value = d.saldo ?? '';
         abrirModal();
     }
 
-    function abrirModal() {
-        document.getElementById('modal').style.display = 'block';
-    }
+    window.abrirEditar = abrirEditar; // expone para el onclick de la tabla
 
-    function cerrarModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
-
+    // Guardar / Borrar )
     document.getElementById('btnAceptar').addEventListener('click', () => {
         const payload = {
             id: document.getElementById('inpId').value || null,
@@ -227,15 +273,14 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN},
             body: JSON.stringify(payload)
-        }).then(r => r.json()).then(resp => {
+        })
+            .then(r => r.json()).then(resp => {
             if (resp.ok) {
                 alert('Guardado');
-                // si es creación, refrescar detalle para permitir imágenes
                 if (!payload.id) {
                     abrirEditar(resp.id);
                 } else {
                     cerrarModal();
-                    window.location.reload();
                 }
             } else {
                 alert('Error: ' + JSON.stringify(resp));
@@ -245,23 +290,27 @@
 
     document.getElementById('btnBorrar').addEventListener('click', () => {
         const id = document.getElementById('inpId').value;
-        if (!id) {
-            // limpiar formulario nuevo
-            abrirModalCrear();
-            return;
-        }
+        if (!id) return; // no hay crear aquí; mantenemos tu flujo
         if (confirm('¿Eliminar este Usuario?')) {
             fetch(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF_TOKEN}})
                 .then(r => r.json()).then(resp => {
                 if (resp.ok) {
                     alert('Eliminado');
                     cerrarModal();
-                    window.location.reload();
+                    const u = new URL(window.location.href);
+                    const page = Number(new URLSearchParams(u.search).get('page') || '1');
+                    buscar(page);
                 }
             });
         }
     });
 
+    // Render inicial del paginador con valores del servidor
+    (function initPaginadorSSR() {
+        const page = Number('{{ page|default:1 }}');
+        const total = Number('{{ total_pages|default:1 }}');
+        renderPaginador(page || 1, total || 1);
+    })();
 </script>
 </body>
 </html>

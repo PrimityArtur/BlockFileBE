@@ -14,7 +14,7 @@ def iniciar_sesion_view(request):
             "contrasena": request.POST.get("contrasena", ""),
         })
         if ser.is_valid():
-            usuario = ser.validated_data["usuario"]
+            usuario = ser .validated_data["usuario"]
             tipo = ser.validated_data["tipo"]
 
             # Guardar sesión mínima (no usamos auth.User)
@@ -52,7 +52,7 @@ def registrarse_view(request):
             request.session["usuario_nombre"] = usuario.nombre_usuario
             request.session["usuario_correo"] = usuario.correo
             request.session["usuario_contrasena"] = usuario.contrasena
-            return redirect("users:catalogo")
+            return redirect("catalogoProductos:catalogo")
         except serializers.ValidationError as e:
             ctx["errors"] = e.detail
 

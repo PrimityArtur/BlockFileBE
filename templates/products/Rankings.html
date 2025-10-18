@@ -1,127 +1,124 @@
+<!-- templates/rankings/Rankings.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Rankings</title>
+  <meta charset="UTF-8">
+  <title>Rankings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  {% load static %}
+  <!-- Sistema CSS modular -->
+  <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
 </head>
 <body>
 <header>
-    <H1>BlockFile</H1>
-    <a class="btn" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-    <a class="btn" href="{% url 'Rankings:rankings' %}">Ranking</a>
-    <a class="btn" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
-    <a class="btn" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+  <h1>BlockFile</h1>
+  <nav>
+    <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+    <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
+    <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
+    <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+  </nav>
 </header>
 
-<div>
-    <button type="button" id="btnAbrirPMComprados">
-        Productos Más Comprados
-    </button>
-    <button type="button" id="btnAbrirMCompradores">
-        Mejores Compradores
-    </button>
-    <button type="button" id="btnAbrirPMCalificados">
-        Productos Mejores Calificados
-    </button>
-</div>
+<main>
+  <section class="container">
+    <h1 class="mb-3">Rankings</h1>
 
-{# Modal Productos mas comprados (top, Nombre, autor, categoria, precio, compras)#}
-<div id="secPMComprados" style="display:none;">
-    <h2>Productos Más Comprados</h2>
-    <table border="1" cellspacing="0" cellpadding="4">
-        <thead>
-        <tr>
+    <!-- Selector de ranking -->
+    <div class="form-row mb-4">
+      <button type="button" class="btn" id="btnAbrirPMComprados">Productos Más Comprados</button>
+      <button type="button" class="btn" id="btnAbrirMCompradores">Mejores Compradores</button>
+      <button type="button" class="btn" id="btnAbrirPMCalificados">Productos Mejores Calificados</button>
+    </div>
+
+    <!-- Productos Más Comprados -->
+    <section id="secPMComprados" class="card p-4 hidden">
+      <h2 class="mb-3">Productos Más Comprados</h2>
+      <div class="max-w">
+        <table aria-label="Productos más comprados">
+          <thead>
+          <tr>
             <th>Top</th>
             <th>Nombre</th>
             <th>Autor</th>
             <th>Categoría</th>
             <th>Precio</th>
             <th>Compras</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for it in pmc_rows %}
+          </tr>
+          </thead>
+          <tbody>
+          {% for it in pmc_rows %}
             <tr>
-                <td>{{ it.top }}</td>
-                <td><a href="{% url 'vistaProducto:detalle_producto' it.id %}">{{ it.nombre }}</a></td>
-                <td>{{ it.autor|default:"-" }}</td>
-                <td>{{ it.categoria|default:"-" }}</td>
-                <td>{% if it.precio is not None %}S/ {{ it.precio }}{% else %}-{% endif %}</td>
-                <td>{{ it.compras }}</td>
+              <td>{{ it.top }}</td>
+              <td><a href="{% url 'vistaProducto:detalle_producto' it.id %}">{{ it.nombre }}</a></td>
+              <td>{{ it.autor|default:"-" }}</td>
+              <td>{{ it.categoria|default:"-" }}</td>
+              <td>{% if it.precio is not None %}S/ {{ it.precio }}{% else %}-{% endif %}</td>
+              <td>{{ it.compras }}</td>
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="6">No hay datos.</td>
-            </tr>{% endfor %}
-        </tbody>
-    </table>
+          {% empty %}
+            <tr><td colspan="6">No hay datos.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-    <div>
-        <button type="button" onclick="irPMComprados(1)" {% if pmc_page == 1 %}disabled{% endif %}>&laquo; Primero
-        </button>
-        <button type="button" onclick="irPMComprados({{ pmc_page|add:-1 }})" {% if pmc_page <= 1 %}disabled{% endif %}>
-            &lsaquo; Ant
-        </button>
+      <div class="mt-3" id="pager-pmc">
+        <button type="button" onclick="irPMComprados(1)" {% if pmc_page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+        <button type="button" onclick="irPMComprados({{ pmc_page|add:-1 }})" {% if pmc_page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
         <span>Página {{ pmc_page }} de {{ pmc_pages }}</span>
-        <button type="button" onclick="irPMComprados({{ pmc_page|add:1 }})"
-                {% if pmc_page >= pmc_pages %}disabled{% endif %}>Sig &rsaquo;
-        </button>
-        <button type="button" onclick="irPMComprados({{ pmc_pages }})"
-                {% if pmc_page >= pmc_pages %}disabled{% endif %}>Último &raquo;
-        </button>
-    </div>
-</div>
+        <button type="button" onclick="irPMComprados({{ pmc_page|add:1 }})" {% if pmc_page >= pmc_pages %}disabled{% endif %}>Sig &rsaquo;</button>
+        <button type="button" onclick="irPMComprados({{ pmc_pages }})" {% if pmc_page >= pmc_pages %}disabled{% endif %}>Último &raquo;</button>
+      </div>
+    </section>
 
-{# Modal Mejores Compradores (Top. nombre, numero de compras) #}
-<div id="secMCompradores" style="display:none;">
-    <h2>Mejores Compradores</h2>
-    <table border="1" cellspacing="0" cellpadding="4">
-        <thead>
-        <tr>
+    <!-- Mejores Compradores -->
+    <section id="secMCompradores" class="card p-4 hidden">
+      <h2 class="mb-3">Mejores Compradores</h2>
+      <div class="max-w">
+        <table aria-label="Mejores compradores">
+          <thead>
+          <tr>
             <th>Top</th>
             <th>Nombre</th>
             <th>N.º de compras</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for it in mc_rows %}
+          </tr>
+          </thead>
+          <tbody>
+          {% for it in mc_rows %}
             <tr>
-                <td>{{ it.top }}</td>
-                <td>{{ it.nombre|default:"-" }}</td>
-                <td>{{ it.compras }}</td>
+              <td>{{ it.top }}</td>
+              <td>{{ it.nombre|default:"-" }}</td>
+              <td>{{ it.compras }}</td>
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="3">No hay datos.</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+          {% empty %}
+            <tr><td colspan="3">No hay datos.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-    <div>
-        <button type="button" onclick="irMejoresCompradores(1)" {% if mc_page == 1 %}disabled{% endif %}>&laquo;
-            Primero
-        </button>
-        <button type="button" onclick="irMejoresCompradores({{ mc_page|add:-1 }})"
-                {% if mc_page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-        </button>
+      <div class="mt-3" id="pager-mc">
+        <button type="button" onclick="irMejoresCompradores(1)" {% if mc_page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+        <button type="button" onclick="irMejoresCompradores({{ mc_page|add:-1 }})" {% if mc_page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
         <span>Página {{ mc_page }} de {{ mc_pages }}</span>
-        <button type="button" onclick="irMejoresCompradores({{ mc_page|add:1 }})"
-                {% if mc_page >= mc_pages %}disabled{% endif %}>Sig &rsaquo;
-        </button>
-        <button type="button" onclick="irMejoresCompradores({{ mc_pages }})"
-                {% if mc_page >= mc_pages %}disabled{% endif %}>Último &raquo;
-        </button>
-    </div>
-</div>
+        <button type="button" onclick="irMejoresCompradores({{ mc_page|add:1 }})" {% if mc_page >= mc_pages %}disabled{% endif %}>Sig &rsaquo;</button>
+        <button type="button" onclick="irMejoresCompradores({{ mc_pages }})" {% if mc_page >= mc_pages %}disabled{% endif %}>Último &raquo;</button>
+      </div>
+    </section>
 
-
-{# Modal Productos Mejores Calificados (top, Nombre, autor, categoria, precio, numero calificaciones, calificacion promedio) #}
-<div id="secPMCalificados" style="display:none;">
-    <h2>Productos Mejores Calificados</h2>
-    <table border="1" cellspacing="0" cellpadding="4">
-        <thead>
-        <tr>
+    <!-- Productos Mejores Calificados -->
+    <section id="secPMCalificados" class="card p-4 hidden">
+      <h2 class="mb-3">Productos Mejores Calificados</h2>
+      <div class="max-w">
+        <table aria-label="Productos mejores calificados">
+          <thead>
+          <tr>
             <th>Top</th>
             <th>Nombre</th>
             <th>Autor</th>
@@ -129,85 +126,80 @@
             <th>Precio</th>
             <th>N.º calificaciones</th>
             <th>Promedio</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for it in pmcal_rows %}
+          </tr>
+          </thead>
+          <tbody>
+          {% for it in pmcal_rows %}
             <tr>
-                <td>{{ it.top }}</td>
-                <td><a href="{% url 'vistaProducto:detalle_producto' it.id %}">{{ it.nombre }}</a></td>
-                <td>{{ it.autor|default:"-" }}</td>
-                <td>{{ it.categoria|default:"-" }}</td>
-                <td>{% if it.precio is not None %}S/ {{ it.precio }}{% else %}-{% endif %}</td>
-                <td>{{ it.n_calificaciones }}</td>
-                <td>{{ it.calif_prom }}</td>
+              <td>{{ it.top }}</td>
+              <td><a href="{% url 'vistaProducto:detalle_producto' it.id %}">{{ it.nombre }}</a></td>
+              <td>{{ it.autor|default:"-" }}</td>
+              <td>{{ it.categoria|default:"-" }}</td>
+              <td>{% if it.precio is not None %}S/ {{ it.precio }}{% else %}-{% endif %}</td>
+              <td>{{ it.n_calificaciones }}</td>
+              <td>{{ it.calif_prom }}</td>
             </tr>
-        {% empty %}
-            <tr>
-                <td colspan="7">No hay datos.</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+          {% empty %}
+            <tr><td colspan="7">No hay datos.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-    <div>
-        <button type="button" onclick="irPMCalificados(1)" {% if pmcal_page == 1 %}disabled{% endif %}>&laquo; Primero
-        </button>
-        <button type="button" onclick="irPMCalificados({{ pmcal_page|add:-1 }})"
-                {% if pmcal_page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-        </button>
+      <div class="mt-3" id="pager-pmcal">
+        <button type="button" onclick="irPMCalificados(1)" {% if pmcal_page == 1 %}disabled{% endif %}>&laquo; Primero</button>
+        <button type="button" onclick="irPMCalificados({{ pmcal_page|add:-1 }})" {% if pmcal_page <= 1 %}disabled{% endif %}>&lsaquo; Ant</button>
         <span>Página {{ pmcal_page }} de {{ pmcal_pages }}</span>
-        <button type="button" onclick="irPMCalificados({{ pmcal_page|add:1 }})"
-                {% if pmcal_page >= pmcal_pages %}disabled{% endif %}>Sig &rsaquo;
-        </button>
-        <button type="button" onclick="irPMCalificados({{ pmcal_pages }})"
-                {% if pmcal_page >= pmcal_pages %}disabled{% endif %}>Último &raquo;
-        </button>
-    </div>
-</div>
-
+        <button type="button" onclick="irPMCalificados({{ pmcal_page|add:1 }})" {% if pmcal_page >= pmcal_pages %}disabled{% endif %}>Sig &rsaquo;</button>
+        <button type="button" onclick="irPMCalificados({{ pmcal_pages }})" {% if pmcal_page >= pmcal_pages %}disabled{% endif %}>Último &raquo;</button>
+      </div>
+    </section>
+  </section>
+</main>
 
 <script>
-    (() => {
-        const TABS = {pmc: "secPMComprados", mc: "secMCompradores", pmcal: "secPMCalificados"};
+(() => {
+  const TABS = { pmc: "secPMComprados", mc: "secMCompradores", pmcal: "secPMCalificados" };
+  const $ = id => document.getElementById(id);
 
-        const $ = id => document.getElementById(id);
+  const urlWith = (updates = {}) => {
+    const u = new URL(location.href);
+    Object.entries(updates).forEach(([k, v]) => u.searchParams.set(k, v));
+    return u;
+  };
 
-        const urlWith = (updates = {}) => {
-            const u = new URL(location.href);
-            Object.entries(updates).forEach(([k, v]) => u.searchParams.set(k, v));
-            return u;
-        };
+  function showTab(tab) {
+    Object.entries(TABS).forEach(([k, sec]) => {
+      const el = document.getElementById(sec);
+      if (!el) return;
+      if (k === tab) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    });
+    history.replaceState(null, "", urlWith({ tab }));
+  }
 
-        function showTab(tab) {
-            Object.entries(TABS).forEach(([k, sec]) => {
-                document.getElementById(sec).style.display = (k === tab) ? "block" : "none";
-            });
-            history.replaceState(null, "", urlWith({tab}));
-        }
+  function goPage(tab, page) {
+    const u = urlWith({ tab });
+    u.searchParams.set(tab, page);
+    location.href = u;
+  }
 
-        function goPage(tab, page) {
-            const u = urlWith({tab});
-            u.searchParams.set(tab, page);
-            location.href = u;
-        }
+  // Botones de pestañas
+  $("btnAbrirPMComprados").onclick = () => showTab("pmc");
+  $("btnAbrirMCompradores").onclick = () => showTab("mc");
+  $("btnAbrirPMCalificados").onclick = () => showTab("pmcal");
 
-        // Botones de pestañas
-        $("btnAbrirPMComprados").onclick = () => showTab("pmc");
-        $("btnAbrirMCompradores").onclick = () => showTab("mc");
-        $("btnAbrirPMCalificados").onclick = () => showTab("pmcal");
+  // Paginadores
+  window.irPMComprados       = n => goPage("pmc", n);
+  window.irMejoresCompradores= n => goPage("mc", n);
+  window.irPMCalificados     = n => goPage("pmcal", n);
 
-        // botones del paginador de cada ranking
-        window.irPMComprados = n => goPage("pmc", n);
-        window.irMejoresCompradores = n => goPage("mc", n);
-        window.irPMCalificados = n => goPage("pmcal", n);
-
-        // Inicial
-        document.addEventListener("DOMContentLoaded", () => {
-            const tab = new URL(location.href).searchParams.get("tab") || "{{ tab|default:'pmc' }}";
-            showTab(tab);
-        });
-    })();
+  // Inicial
+  document.addEventListener("DOMContentLoaded", () => {
+    const tab = new URL(location.href).searchParams.get("tab") || "{{ tab|default:'pmc' }}";
+    showTab(tab);
+  });
+})();
 </script>
 </body>
 </html>

@@ -37,7 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
+    'django_filters',
+    'corsheaders',
+    'drf_spectacular',
+
+    #apps
     'core.apps.coreConfig',
     'users.apps.UsersConfig',
     'gestorProductos.apps.GestorProductosConfig',
@@ -46,6 +52,7 @@ INSTALLED_APPS = [
     'vistaProducto.apps.vistaProductoConfig',
     'Rankings.apps.rankingsConfig',
     'PerfilCliente.apps.PerfilClienteConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -57,6 +64,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = ['http://localhost:4200']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:4200']
+
 
 ROOT_URLCONF = 'BlockFileBE.urls'
 
@@ -129,6 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

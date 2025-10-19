@@ -9,9 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import os
 from pathlib import Path
+import os
+import dj_database_url
+from dotenv import load_dotenv
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,8 +29,10 @@ SECRET_KEY = 'django-insecure-yt^7de0tvrr=p!=p_-12w=vi-256@lgom!dvk9$dz6ehfjr+ln
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://web-production-a9bbf.up.railway.app',
     'localhost',
+    '127.0.0.1',
+    'web-production-a9bbf.up.railway.app',
+    'http://*'
 ]
 
 
@@ -98,14 +103,15 @@ WSGI_APPLICATION = 'BlockFileBE.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "blockfile",
-        "USER": "postgres",
-        "PASSWORD": "aaa",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
+    "default": dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql",
+    #     "NAME": "blockfile",
+    #     "USER": "postgres",
+    #     "PASSWORD": "aaa",
+    #     "HOST": "localhost",
+    #     "PORT": "5432",
+    # }
 }
 
 
@@ -161,3 +167,8 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = [
+    'HTTP://*',
+    'https://web-production-a9bbf.up.railway.app',
+]

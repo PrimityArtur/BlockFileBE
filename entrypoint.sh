@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-# Espera breve por la DB en ambientes lentos (opcional)
-# sleep 2
-
+echo "Ejecutando migraciones..."
 python manage.py migrate --noinput
+
+echo "Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-# Ejecuta el comando que pase Docker (CMD)
+echo "Iniciando aplicación..."
 exec "$@"

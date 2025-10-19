@@ -31,12 +31,12 @@ button, input, textarea, select {
 
 /* Enlaces */
 a {
-    color: var(--color-accent);
+    color: var(--color-fg3);
     text-decoration: none;
 }
 
 a:hover {
-    color: var(--color-accent-100);
+    color: var(--color-fg);
     text-decoration: underline;
 }
 
@@ -57,7 +57,26 @@ h3 {
     margin: 0 0 var(--gap-2);
 }
 
+
+/* Tablas */
 table {
     width: 100%;
     border-collapse: collapse;
+    background: transparent;
 }
+
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+thead th {
+    background: var(--surface);
+    font-weight: 700;
+}
+
+tr:hover td {
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+

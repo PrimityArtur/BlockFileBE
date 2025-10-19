@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+import dj_database_url
+
+# Carga .env en local
+load_dotenv(override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,10 +28,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-yt^7de0tvrr=p!=p_-12w=vi-256@lgom!dvk9$dz6ehfjr+ln'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# ---------- Seguridad / Entorno ----------
+DEBUG = os.getenv("DEBUG", "0") == "1"
+# CAMBIAR: quita el hardcode y usa variable de entorno en Railway
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-insecure-key-change-me")
 
-ALLOWED_HOSTS = []
+# Railway usa dominios *.railway.app. Puedes afinarlo luego.
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*.railway.app,localhost,127.0.0.1").split(",")
+# ALLOWED_HOSTS = []
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
 
 
 # Application definition
@@ -57,16 +71,24 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:4200']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:4200']
+# ---------- CORS / CSRF ----------
+# (Angular)
+CORS_ALLOWED_ORIGINS = list(filter(None, os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:4200").split(",")))
+
+# agrega Railway para formularios/POST desde front
+CSRF_TRUSTED_ORIGINS = list(filter(None, os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:4200,https://*.railway.app").split(",")))
 
 
 ROOT_URLCONF = 'BlockFileBE.urls'
@@ -93,16 +115,23 @@ WSGI_APPLICATION = 'BlockFileBE.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "blockfile",
-        "USER": "postgres",
-        "PASSWORD": "aaa",
-        "HOST": "localhost",
-        "PORT": "5432",
+# Si Railway provee DATABASE_URL, úsalo. Si no, cae a tu config local (dev).
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "blockfile"),
+            "USER": os.getenv("DB_USER", "postgres"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "aaa"),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+        }
+    }
 
 
 # Password validation
@@ -136,13 +165,23 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# ---------- Archivos estáticos ----------
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+# Mantén tus estáticos de dev si los usas
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# WhiteNoise para servir estáticos en prod
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# ---------- Seguridad extra en producción ----------
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Puedes activar HSTS cuando todo esté estable:
+    # SECURE_HSTS_SECONDS = 3600
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

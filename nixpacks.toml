@@ -1,2 +1,8 @@
 [phases.setup]
 nixPkgs = ["file"]
+
+[phases.install]
+cmds = [
+  "python manage.py migrate --noinput",
+  "python manage.py collectstatic --noinput"
+]

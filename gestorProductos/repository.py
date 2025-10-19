@@ -1,6 +1,8 @@
 
 from typing import Optional, Tuple, List, Iterable
 from decimal import Decimal
+from xmlrpc.client import FastParser
+
 from django.db.models import Q, Avg, Prefetch
 from django.core.paginator import Paginator
 from django.db import transaction, connection
@@ -37,6 +39,7 @@ def listar_pagina(
         qs = qs.filter(autor__nombre__icontains=f_autor)
     if f_categoria:
         qs = qs.filter(categoria__nombre__icontains=f_categoria)
+    qs = qs.filter(activo=True)
 
     # annotate promedio calificacion
     qs = qs.annotate(promedio=Avg('calificaciones__calificacion')).order_by('id_producto')

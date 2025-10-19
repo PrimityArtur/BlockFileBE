@@ -1,1 +1,1 @@
-web: gunicorn BlockFileBE.wsgi
+web: python manage.py collectstatic && gunicorn BlockFileBE.wsgi

@@ -1,255 +1,240 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <title>Gestión de Productos</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderAdministrador.html' %}
 
-    {% load static %}
-    <!-- Sistema CSS modular -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'users:perfil_admin' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
-        <a class="btn btn--ghost" href="{% url 'gestorCategorias:gestion' %}">Categorías</a>
-        <a class="btn btn--ghost" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
-    </nav>
-</header>
+{% block title %}Gestor Productos{% endblock %}
 
-<main>
-    <section class="container">
-        <div class="between flex wrap items-end mb-4">
-            <h1 class="mb-0">Gestión de Productos</h1>
-            <button type="button" class="btn" id="btnAgregar">Agregar</button>
-        </div>
-
-        <!-- Buscador -->
-        <form id="formBuscar" method="get" action="" class="card p-4">
-            <div class="form-row">
-                <div>
-                    <label for="f_id">ID</label>
-                    <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
-                </div>
-                <div>
-                    <label for="f_nombre">Nombre</label>
-                    <input id="f_nombre" type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-                </div>
-                <div>
-                    <label for="f_autor">Autor</label>
-                    <input id="f_autor" type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
-                </div>
-                <div>
-                    <label for="f_categoria">Categoría</label>
-                    <input id="f_categoria" type="text" name="categoria" placeholder="Categoría"
-                           value="{{ filtros.categoria }}">
-                </div>
-                <div class="items-end" style="display:flex;">
-                    <button type="submit" class="btn">Buscar</button>
-                </div>
+{% block content %}
+    <main>
+        <section class="container">
+            <div class="between flex wrap items-end mb-4">
+                <h1 class="mb-0">Gestión de Productos</h1>
+                <button type="button" class="btn" id="btnAgregar">Agregar</button>
             </div>
-        </form>
 
-        <!-- Tabla -->
-        <div class="card mt-4">
-            <div class="max-w">
-                <table aria-label="Listado de productos">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Autor</th>
-                        <th>Categoría</th>
-                        <th class="text-right">Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tblBody">
-                    {% for p in filas %}
-                        <tr>
-                            <td>{{ p.id }}</td>
-                            <td>{{ p.nombre }}</td>
-                            <td>{{ p.autor }}</td>
-                            <td>{{ p.categoria }}</td>
-                            <td class="text-right">
-                                <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5">Sin resultados</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Paginador -->
-        <div id="pager" class="mt-3"></div>
-
-        <noscript>
-            <div id="pager" class="mt-3">
-                <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>&laquo;
-                    Primero
-                </button>
-                <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
-                        {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-                </button>
-                <span>Página {{ page }} de {{ total_pages }}</span>
-                <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
-                        {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
-                </button>
-                <button type="button" onclick="location.href='?page={{ total_pages }}' "
-                        {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
-                </button>
-            </div>
-        </noscript>
-    </section>
-</main>
-
-<!-- Modal (oculto por defecto; se muestra con .abierto) -->
-<div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
-    <div class="modal__dialog" role="document">
-        <div class="modal__header">
-            <span id="modalTitulo" class="modal__title">Producto</span>
-            <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
-        </div>
-
-        <form id="formProducto" class="grid gap-4" novalidate>
-            <input type="hidden" id="inpId" name="id"/>
-
-            <fieldset class="border rounded p-3">
-                <legend class="text-muted">Campos no modificables</legend>
-                <div class="grid grid-2 gap-3">
-                    <div>Fecha de subida: <span id="spFecha" class="text-muted">—</span></div>
-                    <div>Calificación (promedio): <span id="spCalif" class="text-muted">—</span></div>
-                    <div>ID: <span id="spId" class="text-muted">—</span></div>
-                </div>
-            </fieldset>
-
-            <fieldset class="border rounded p-3">
-                <legend>Campos editables</legend>
-                <div class="grid grid-2 gap-3">
-                    <div>
-                        <label for="inpNombre">Nombre</label>
-                        <input type="text" id="inpNombre" name="nombre" maxlength="50" required/>
-                    </div>
-                    <div>
-                        <label for="inpVersion">Versión</label>
-                        <input type="text" id="inpVersion" name="version" maxlength="50"/>
-                    </div>
-                    <div class="grid-2" style="grid-column: 1 / -1;">
-                        <div>
-                            <label for="inpPrecio">Precio</label>
-                            <input type="number" id="inpPrecio" name="precio" min="0" step="0.01"/>
-                        </div>
-                        <div>
-                            <label for="inpActivo">Activo</label><br>
-                            <input type="checkbox" id="inpActivo" name="activo" checked/>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="inpAutor">Autor (id)</label>
-                        <input type="number" id="inpAutor" name="id_autor" min="1"/>
-                    </div>
-                    <div>
-                        <label for="inpCategoria">Categoría (id)</label>
-                        <input type="number" id="inpCategoria" name="id_categoria" min="1"/>
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <label for="inpDescripcion">Descripción</label>
-                        <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="border rounded p-3">
-                <legend>Archivo del producto</legend>
-                <div class="grid gap-2">
-                    <div>Estado: <span id="spArchivoEstado" class="text-muted">—</span></div>
-                    <a id="lnkArchivoDescarga" href="" target="_blank" class="hidden">Descargar archivo</a>
-                    <div class="form-row">
-                        <input type="file" id="fileProducto"/>
-                        <button type="button" class="btn" id="btnSubirArchivo">Subir/Reemplazar archivo</button>
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="border rounded p-3">
-                <legend>Imágenes</legend>
+            <!-- Buscador -->
+            <form id="formBuscar" method="get" action="" class="card p-4">
                 <div class="form-row">
-                    <input type="file" id="fileImagen" accept="image/*"/>
-                    <button type="button" class="btn" id="btnAgregarImagen">Agregar Imagen</button>
+                    <div>
+                        <label for="f_id">ID</label>
+                        <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
+                    </div>
+                    <div>
+                        <label for="f_nombre">Nombre</label>
+                        <input id="f_nombre" type="text" name="nombre" placeholder="Nombre"
+                               value="{{ filtros.nombre }}">
+                    </div>
+                    <div>
+                        <label for="f_autor">Autor</label>
+                        <input id="f_autor" type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
+                    </div>
+                    <div>
+                        <label for="f_categoria">Categoría</label>
+                        <input id="f_categoria" type="text" name="categoria" placeholder="Categoría"
+                               value="{{ filtros.categoria }}">
+                    </div>
+                    <div class="items-end" style="display:flex;">
+                        <button type="submit" class="btn">Buscar</button>
+                    </div>
                 </div>
+            </form>
 
-                <!-- Carrusel -->
-                <div class="carousel mt-3">
-                    <div id="carouselTrack" class="carousel__track" tabindex="0"
-                         aria-label="Carrusel de imágenes"></div>
+            <!-- Tabla -->
+            <div class="card mt-4">
+                <div class="max-w overflow-auto">
+                    <table aria-label="Listado de productos">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Autor</th>
+                            <th>Categoría</th>
+                            <th class="text-right">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tblBody">
+                        {% for p in filas %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>{{ p.nombre }}</td>
+                                <td>{{ p.autor }}</td>
+                                <td>{{ p.categoria }}</td>
+                                <td class="text-right">
+                                    <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">Sin resultados</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            </fieldset>
-
-            <div class="modal__actions">
-                <button type="button" class="btn" id="btnAceptar">Aceptar</button>
-                <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
-                <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
             </div>
-        </form>
+
+            <!-- Paginador -->
+            <div id="pager" class="mt-3"></div>
+
+            <noscript>
+                <div id="pager" class="mt-3">
+                    <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>
+                        &laquo;
+                        Primero
+                    </button>
+                    <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
+                            {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+                    </button>
+                    <span>Página {{ page }} de {{ total_pages }}</span>
+                    <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
+                            {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
+                    </button>
+                    <button type="button" onclick="location.href='?page={{ total_pages }}' "
+                            {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
+                    </button>
+                </div>
+            </noscript>
+        </section>
+    </main>
+
+    <!-- Modal (oculto por defecto; se muestra con .abierto) -->
+    <div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
+        <div class="modal__dialog" role="document">
+            <div class="modal__header">
+                <span id="modalTitulo" class="modal__title">Producto</span>
+                <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
+            </div>
+
+            <form id="formProducto" class="grid gap-4" novalidate>
+                <input type="hidden" id="inpId" name="id"/>
+
+                <fieldset class="border rounded p-3">
+                    <legend class="text-muted">Campos no modificables</legend>
+                    <div class="grid grid-2 gap-3">
+                        <div>Fecha de subida: <span id="spFecha" class="text-muted">—</span></div>
+                        <div>Calificación (promedio): <span id="spCalif" class="text-muted">—</span></div>
+                        <div>ID: <span id="spId" class="text-muted">—</span></div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border rounded p-3">
+                    <legend>Campos editables</legend>
+                    <div class="grid grid-2 gap-3">
+                        <div>
+                            <label for="inpNombre">Nombre</label>
+                            <input type="text" id="inpNombre" name="nombre" maxlength="50" required/>
+                        </div>
+                        <div>
+                            <label for="inpVersion">Versión</label>
+                            <input type="text" id="inpVersion" name="version" maxlength="50"/>
+                        </div>
+                        <div class="grid-2" style="grid-column: 1 / -1;">
+                            <div>
+                                <label for="inpPrecio">Precio</label>
+                                <input type="number" id="inpPrecio" name="precio" min="0" step="0.01"/>
+                            </div>
+                            <div>
+                                <label for="inpActivo">Activo</label><br>
+                                <input type="checkbox" id="inpActivo" name="activo" checked/>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="inpAutor">Autor (id)</label>
+                            <input type="number" id="inpAutor" name="id_autor" min="1"/>
+                        </div>
+                        <div>
+                            <label for="inpCategoria">Categoría (id)</label>
+                            <input type="number" id="inpCategoria" name="id_categoria" min="1"/>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label for="inpDescripcion">Descripción</label>
+                            <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border rounded p-3">
+                    <legend>Archivo del producto</legend>
+                    <div class="grid gap-2">
+                        <div>Estado: <span id="spArchivoEstado" class="text-muted">—</span></div>
+                        <a id="lnkArchivoDescarga" href="" target="_blank" class="hidden">Descargar archivo</a>
+                        <div class="form-row">
+                            <input type="file" id="fileProducto"/>
+                            <button type="button" class="btn" id="btnSubirArchivo">Subir/Reemplazar archivo</button>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border rounded p-3">
+                    <legend>Imágenes</legend>
+                    <div class="form-row">
+                        <input type="file" id="fileImagen" accept="image/*"/>
+                        <button type="button" class="btn" id="btnAgregarImagen">Agregar Imagen</button>
+                    </div>
+
+                    <!-- Carrusel -->
+                    <div class="carousel mt-3">
+                        <div id="carouselTrack" class="carousel__track" tabindex="0"
+                             aria-label="Carrusel de imágenes"></div>
+                    </div>
+                </fieldset>
+
+                <div class="modal__actions">
+                    <button type="button" class="btn" id="btnAceptar">Aceptar</button>
+                    <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
+                    <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-    (() => {
-        const $ = id => document.getElementById(id);
-        const j = (url, opt = {}) => fetch(url, opt).then(r => r.json());
-        const setVal = (id, v = '') => ($(id).value = v);
-        const setTxt = (id, v = '—') => ($(id).textContent = (v ?? '—'));
-        const CSRF = "{{ csrf_token }}";
+{% endblock %}
 
-        // ---- refs
-        const formBuscar = $('formBuscar');
-        const tblBody = $('tblBody');
-        const pager = $('pager');
-        const modal = $('modal');
+{% block scripts %}
 
-        // ---- Búsqueda, tabla y paginador
-        const qFromForm = () => {
-            const q = new URLSearchParams(new FormData(formBuscar));
-            [...q].forEach(([k, v]) => {
-                if (!String(v).trim()) q.delete(k);
-            });
-            return q;
-        };
+    <script>
+        (() => {
+            const $ = id => document.getElementById(id);
+            const j = (url, opt = {}) => fetch(url, opt).then(r => r.json());
+            const setVal = (id, v = '') => ($(id).value = v);
+            const setTxt = (id, v = '—') => ($(id).textContent = (v ?? '—'));
+            const CSRF = "{{ csrf_token }}";
 
-        async function buscar(page = 1) {
-            const q = qFromForm();
-            q.set('page', page);
-            const resp = await j(`./api/listar/?${q}`);
-            renderTabla(resp.rows || []);
-            renderPager(resp.page || 1, resp.total_pages || 1);
-        }
+            // ---- refs
+            const formBuscar = $('formBuscar');
+            const tblBody = $('tblBody');
+            const pager = $('pager');
+            const modal = $('modal');
 
-        function renderPager(p, t) {
-            const btn = (txt, n, dis) =>
-                `<button type="button" onclick="irPagina(${n})" ${dis ? 'disabled' : ''}>${txt}</button>`;
-            pager.innerHTML = [
-                btn('&laquo; Primero', 1, p <= 1),
-                btn('&lsaquo; Ant', p - 1, p <= 1),
-                `<span>Página ${p} de ${t}</span>`,
-                btn('Sig &rsaquo;', p + 1, p >= t),
-                btn('Último &raquo;', t, p >= t)
-            ].join('');
-        }
+            // ---- Búsqueda, tabla y paginador
+            const qFromForm = () => {
+                const q = new URLSearchParams(new FormData(formBuscar));
+                [...q].forEach(([k, v]) => {
+                    if (!String(v).trim()) q.delete(k);
+                });
+                return q;
+            };
 
-        function renderTabla(rows) {
-            tblBody.innerHTML = rows.length ? rows.map(p => `
+            async function buscar(page = 1) {
+                const q = qFromForm();
+                q.set('page', page);
+                const resp = await j(`./api/listar/?${q}`);
+                renderTabla(resp.rows || []);
+                renderPager(resp.page || 1, resp.total_pages || 1);
+            }
+
+            function renderPager(p, t) {
+                const btn = (txt, n, dis) =>
+                    `<button type="button" onclick="irPagina(${n})" ${dis ? 'disabled' : ''}>${txt}</button>`;
+                pager.innerHTML = [
+                    btn('&laquo; Primero', 1, p <= 1),
+                    btn('&lsaquo; Ant', p - 1, p <= 1),
+                    `<span>Página ${p} de ${t}</span>`,
+                    btn('Sig &rsaquo;', p + 1, p >= t),
+                    btn('Último &raquo;', t, p >= t)
+                ].join('');
+            }
+
+            function renderTabla(rows) {
+                tblBody.innerHTML = rows.length ? rows.map(p => `
       <tr>
         <td>${p.id}</td>
         <td>${p.nombre}</td>
@@ -258,234 +243,234 @@
         <td class="text-right"><button type="button" class="btn" data-editar="${p.id}">Editar</button></td>
       </tr>
     `).join('') : `<tr><td colspan="5">Sin resultados</td></tr>`;
-        }
+            }
 
-        window.irPagina = p => buscar(Math.max(1, p));
-        formBuscar.addEventListener('submit', e => {
-            e.preventDefault();
-            buscar(1);
-        });
+            window.irPagina = p => buscar(Math.max(1, p));
+            formBuscar.addEventListener('submit', e => {
+                e.preventDefault();
+                buscar(1);
+            });
 
-        // click en “Editar” dentro de la tabla (delegación)
-        tblBody.addEventListener('click', async e => {
-            const id = e.target?.dataset?.editar;
-            if (!id) return;
-            abrirCon(await j(`./api/detalle/${id}/`));
-        });
+            // click en “Editar” dentro de la tabla (delegación)
+            tblBody.addEventListener('click', async e => {
+                const id = e.target?.dataset?.editar;
+                if (!id) return;
+                abrirCon(await j(`./api/detalle/${id}/`));
+            });
 
-        // ---------- MODAL ----------
-        const btnCerrar = $('btnCerrar');
-        const btnCerrarX = $('btnCerrarX');
+            // ---------- MODAL ----------
+            const btnCerrar = $('btnCerrar');
+            const btnCerrarX = $('btnCerrarX');
 
-        function abrirModal() {
-            modal.classList.add('abierto');
-            modal.setAttribute('aria-hidden', 'false');
-            setTimeout(() => $('inpNombre').focus(), 0);
-        }
+            function abrirModal() {
+                modal.classList.add('abierto');
+                modal.setAttribute('aria-hidden', 'false');
+                setTimeout(() => $('inpNombre').focus(), 0);
+            }
 
-        function cerrarModal() {
-            modal.classList.remove('abierto');
-            modal.setAttribute('aria-hidden', 'true');
-        }
+            function cerrarModal() {
+                modal.classList.remove('abierto');
+                modal.setAttribute('aria-hidden', 'true');
+            }
 
-        btnCerrar.addEventListener('click', cerrarModal);
-        btnCerrarX.addEventListener('click', cerrarModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) cerrarModal();
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
-        });
+            btnCerrar.addEventListener('click', cerrarModal);
+            btnCerrarX.addEventListener('click', cerrarModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) cerrarModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
+            });
 
-        // ---------- Cargar datos en modal
-        const fillStatic = d => {
-            setTxt('spId', d?.id);
-            setTxt('spFecha', d?.fecha?.slice(0, 19).replace('T', ' ') || '—');
-            setTxt('spCalif', d?.calificacion ?? '—');
-        };
-        const fillForm = d => {
-            setVal('inpId', d?.id || '');
-            setVal('inpNombre', d?.nombre || '');
-            setVal('inpDescripcion', d?.descripcion || '');
-            setVal('inpVersion', d?.version || '');
-            setVal('inpPrecio', d?.precio || '');
-            setVal('inpAutor', d?.autor_id || '');
-            setVal('inpCategoria', d?.categoria_id || '');
-            $('inpActivo').checked = d?.activo ?? true;
-        };
+            // ---------- Cargar datos en modal
+            const fillStatic = d => {
+                setTxt('spId', d?.id);
+                setTxt('spFecha', d?.fecha?.slice(0, 19).replace('T', ' ') || '—');
+                setTxt('spCalif', d?.calificacion ?? '—');
+            };
+            const fillForm = d => {
+                setVal('inpId', d?.id || '');
+                setVal('inpNombre', d?.nombre || '');
+                setVal('inpDescripcion', d?.descripcion || '');
+                setVal('inpVersion', d?.version || '');
+                setVal('inpPrecio', d?.precio || '');
+                setVal('inpAutor', d?.autor_id || '');
+                setVal('inpCategoria', d?.categoria_id || '');
+                $('inpActivo').checked = d?.activo ?? true;
+            };
 
-        function abrirCrear() {
-            $('modalTitulo').textContent = 'Agregar producto';
-            fillStatic({});
-            fillForm({});
-            $('lnkArchivoDescarga').classList.add('hidden');
-            setTxt('spArchivoEstado', '—');
-            clearCarousel();
-            abrirModal();
-        }
-
-        $('btnAgregar').addEventListener('click', abrirCrear);
-
-        async function abrirCon(d) {
-            $('modalTitulo').textContent = 'Editar producto';
-            fillStatic(d);
-            fillForm(d);
-
-            // archivo
-            if (d?.tiene_archivo) {
-                setTxt('spArchivoEstado', 'Cargado');
-                const base = "{% url 'gestorProductos:descargar_archivo_producto' 0 %}".replace("0/", "");
-                const link = $('lnkArchivoDescarga');
-                link.href = `${base}${d.id}/`;
-                link.classList.remove('hidden');
-            } else {
-                setTxt('spArchivoEstado', 'Sin archivo');
+            function abrirCrear() {
+                $('modalTitulo').textContent = 'Agregar producto';
+                fillStatic({});
+                fillForm({});
                 $('lnkArchivoDescarga').classList.add('hidden');
+                setTxt('spArchivoEstado', '—');
+                clearCarousel();
+                abrirModal();
             }
 
-            // imágenes al carrusel
-            clearCarousel();
-            (d?.imagenes || []).forEach(img => addCarouselItem({id: img.id, orden: img.orden}));
+            $('btnAgregar').addEventListener('click', abrirCrear);
 
-            abrirModal();
-        }
+            async function abrirCon(d) {
+                $('modalTitulo').textContent = 'Editar producto';
+                fillStatic(d);
+                fillForm(d);
 
-        window.abrirEditar = async id => abrirCon(await j(`./api/detalle/${id}/`));
+                // archivo
+                if (d?.tiene_archivo) {
+                    setTxt('spArchivoEstado', 'Cargado');
+                    const base = "{% url 'gestorProductos:descargar_archivo_producto' 0 %}".replace("0/", "");
+                    const link = $('lnkArchivoDescarga');
+                    link.href = `${base}${d.id}/`;
+                    link.classList.remove('hidden');
+                } else {
+                    setTxt('spArchivoEstado', 'Sin archivo');
+                    $('lnkArchivoDescarga').classList.add('hidden');
+                }
 
-        // ---------- Carrusel
-        const track = $('carouselTrack');
+                // imágenes al carrusel
+                clearCarousel();
+                (d?.imagenes || []).forEach(img => addCarouselItem({id: img.id, orden: img.orden}));
 
-        function clearCarousel() {
-            track.innerHTML = '';
-        }
-
-        function addCarouselItem(img, fileBlob) {
-            const item = document.createElement('div');
-            item.className = 'carousel__item card';
-
-            const preview = document.createElement('img');
-            preview.alt = 'Imagen del producto';
-            if (fileBlob) {
-                const rd = new FileReader();
-                rd.onload = e => preview.src = e.target.result;
-                rd.readAsDataURL(fileBlob);
-            } else {
-                preview.src = `./api/imagen/${img.id}/`;
+                abrirModal();
             }
 
-            const controls = document.createElement('div');
-            controls.className = 'carousel__item-controls';
+            window.abrirEditar = async id => abrirCon(await j(`./api/detalle/${id}/`));
 
-            const orden = document.createElement('input');
-            orden.type = 'number';
-            orden.min = '1';
-            orden.value = img.orden || 1;
-            orden.title = 'Orden';
-            orden.className = 'carousel__orden';
+            // ---------- Carrusel
+            const track = $('carouselTrack');
 
-            const btnSet = document.createElement('button');
-            btnSet.type = 'button';
-            btnSet.className = 'btn btn--muted';
-            btnSet.textContent = 'Orden';
-            btnSet.onclick = () => j(`./api/reordenar_imagen/${img.id}/`, {
-                method: 'POST',
-                headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'orden=' + encodeURIComponent(orden.value)
+            function clearCarousel() {
+                track.innerHTML = '';
+            }
+
+            function addCarouselItem(img, fileBlob) {
+                const item = document.createElement('div');
+                item.className = 'carousel__item card';
+
+                const preview = document.createElement('img');
+                preview.alt = 'Imagen del producto';
+                if (fileBlob) {
+                    const rd = new FileReader();
+                    rd.onload = e => preview.src = e.target.result;
+                    rd.readAsDataURL(fileBlob);
+                } else {
+                    preview.src = `./api/imagen/${img.id}/`;
+                }
+
+                const controls = document.createElement('div');
+                controls.className = 'carousel__item-controls';
+
+                const orden = document.createElement('input');
+                orden.type = 'number';
+                orden.min = '1';
+                orden.value = img.orden || 1;
+                orden.title = 'Orden';
+                orden.className = 'carousel__orden';
+
+                const btnSet = document.createElement('button');
+                btnSet.type = 'button';
+                btnSet.className = 'btn btn--muted';
+                btnSet.textContent = 'Orden';
+                btnSet.onclick = () => j(`./api/reordenar_imagen/${img.id}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'orden=' + encodeURIComponent(orden.value)
+                });
+
+                const btnDel = document.createElement('button');
+                btnDel.type = 'button';
+                btnDel.className = 'btn btn--danger';
+                btnDel.textContent = 'Borrar';
+                btnDel.onclick = async () => {
+                    if (!confirm('¿Borrar imagen?')) return;
+                    const r = await j(`./api/borrar_imagen/${img.id}/`, {
+                        method: 'POST',
+                        headers: {'X-CSRFToken': CSRF}
+                    });
+                    if (r.ok) item.remove();
+                };
+
+                controls.append(orden, btnSet, btnDel);
+                item.append(preview, controls);
+                track.appendChild(item);
+            }
+
+
+            // Agregar nueva imagen (previsualiza y añade al carrusel)
+            $('btnAgregarImagen').addEventListener('click', async () => {
+                const id = $('inpId').value, f = $('fileImagen').files[0];
+                if (!id || !f) return;
+                const form = new FormData();
+                form.append('archivo', f);
+                const resp = await j(`./api/subir_imagen/${id}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': CSRF},
+                    body: form
+                });
+                if (!resp.ok) return;
+                addCarouselItem({id: resp.id_imagen, orden: track.children.length + 1}, f);
+                $('fileImagen').value = '';
             });
 
-            const btnDel = document.createElement('button');
-            btnDel.type = 'button';
-            btnDel.className = 'btn btn--danger';
-            btnDel.textContent = 'Borrar';
-            btnDel.onclick = async () => {
-                if (!confirm('¿Borrar imagen?')) return;
-                const r = await j(`./api/borrar_imagen/${img.id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
-                if (r.ok) item.remove();
-            };
-
-            controls.append(orden, btnSet, btnDel);
-            item.append(preview, controls);
-            track.appendChild(item);
-        }
-
-
-
-        // Agregar nueva imagen (previsualiza y añade al carrusel)
-        $('btnAgregarImagen').addEventListener('click', async () => {
-            const id = $('inpId').value, f = $('fileImagen').files[0];
-            if (!id || !f) return;
-            const form = new FormData();
-            form.append('archivo', f);
-            const resp = await j(`./api/subir_imagen/${id}/`, {
-                method: 'POST',
-                headers: {'X-CSRFToken': CSRF},
-                body: form
+            // ---------- Acciones: guardar / borrar / subir archivo
+            $('btnAceptar').addEventListener('click', async () => {
+                const payload = {
+                    id: $('inpId').value || null,
+                    nombre: $('inpNombre').value,
+                    descripcion: $('inpDescripcion').value,
+                    version: $('inpVersion').value,
+                    precio: $('inpPrecio').value,
+                    id_autor: $('inpAutor').value || null,
+                    id_categoria: $('inpCategoria').value || null,
+                    activo: $('inpActivo').checked
+                };
+                const resp = await j('./api/guardar/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                    body: JSON.stringify(payload)
+                });
+                if (!payload.id && resp.id) {
+                    abrirEditar(resp.id);
+                } else {
+                    cerrarModal();
+                }
             });
-            if (!resp.ok) return;
-            addCarouselItem({id: resp.id_imagen, orden: track.children.length + 1}, f);
-            $('fileImagen').value = '';
-        });
 
-        // ---------- Acciones: guardar / borrar / subir archivo
-        $('btnAceptar').addEventListener('click', async () => {
-            const payload = {
-                id: $('inpId').value || null,
-                nombre: $('inpNombre').value,
-                descripcion: $('inpDescripcion').value,
-                version: $('inpVersion').value,
-                precio: $('inpPrecio').value,
-                id_autor: $('inpAutor').value || null,
-                id_categoria: $('inpCategoria').value || null,
-                activo: $('inpActivo').checked
-            };
-            const resp = await j('./api/guardar/', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-                body: JSON.stringify(payload)
+            $('btnBorrar').addEventListener('click', async () => {
+                const id = $('inpId').value;
+                if (!id) {
+                    abrirCrear();
+                    return;
+                }
+                if (!confirm('¿Eliminar este producto?')) return;
+                const resp = await j(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
+                if (resp.ok) {
+                    cerrarModal();
+                    const u = new URL(window.location.href);
+                    const page = Number(new URLSearchParams(u.search).get('page') || '1');
+                    buscar(page);
+                }
             });
-            if (!payload.id && resp.id) {
-                abrirEditar(resp.id);
-            } else {
-                cerrarModal();
-            }
-        });
 
-        $('btnBorrar').addEventListener('click', async () => {
-            const id = $('inpId').value;
-            if (!id) {
-                abrirCrear();
-                return;
-            }
-            if (!confirm('¿Eliminar este producto?')) return;
-            const resp = await j(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}});
-            if (resp.ok) {
-                cerrarModal();
-                const u = new URL(window.location.href);
-                const page = Number(new URLSearchParams(u.search).get('page') || '1');
-                buscar(page);
-            }
-        });
+            $('btnSubirArchivo').addEventListener('click', async () => {
+                const id = $('inpId').value, f = $('fileProducto').files[0];
+                if (!id || !f) return;
+                const form = new FormData();
+                form.append('archivo', f);
+                const base = "{% url 'gestorProductos:api_subir_archivo_producto' 0 %}".replace("0/", "");
+                const resp = await j(`${base}${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}, body: form});
+                if (resp.ok) {
+                    setTxt('spArchivoEstado', 'Cargado');
+                    $('fileProducto').value = '';
+                }
+            });
 
-        $('btnSubirArchivo').addEventListener('click', async () => {
-            const id = $('inpId').value, f = $('fileProducto').files[0];
-            if (!id || !f) return;
-            const form = new FormData();
-            form.append('archivo', f);
-            const base = "{% url 'gestorProductos:api_subir_archivo_producto' 0 %}".replace("0/", "");
-            const resp = await j(`${base}${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF}, body: form});
-            if (resp.ok) {
-                setTxt('spArchivoEstado', 'Cargado');
-                $('fileProducto').value = '';
-            }
-        });
-
-        // ---------- Carga inicial
-        document.addEventListener('DOMContentLoaded', () => {
-            const sp = new URL(location.href).searchParams;
-            buscar(parseInt(sp.get('page') || '1', 10));
-        });
-    })();
-</script>
-
-</body>
-</html>
+            // ---------- Carga inicial
+            document.addEventListener('DOMContentLoaded', () => {
+                const sp = new URL(location.href).searchParams;
+                buscar(parseInt(sp.get('page') || '1', 10));
+            });
+        })();
+    </script>
+{% endblock %}

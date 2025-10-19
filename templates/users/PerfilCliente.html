@@ -1,180 +1,191 @@
-<!-- templates/perfil/PerfilCliente.html -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Perfil del Cliente</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderCliente.html' %}
 
-    {% load static %}
-    <!-- Sistema CSS modular -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-        <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
-        <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
-    </nav>
-</header>
+{% block title %}Perfil{% endblock %}
 
-<main>
-    <section class="container">
-        <div class="between flex wrap items-end mb-4">
-            <h1 class="mb-0">Perfil del Cliente</h1>
-        </div>
+{% block content %}
 
-        {% if errors %}
-            <div class="card p-3 mb-3">
-                <strong>Errores:</strong>
-                <pre class="mt-2">{{ errors }}</pre>
-            </div>
-        {% endif %}
-
-        <!-- Formulario de perfil (coherente con PerfilAdministrador) -->
-        <form id="formPerfil" method="post" action="" class="card p-4">
-            {% csrf_token %}
-
-            <div class="form-row">
-                <div>
-                    <label for="nombre_usuario">Nombre de Usuario</label>
-                    <input id="nombre_usuario" type="text" name="nombre_usuario" maxlength="10" required
-                           value="{{ perfil.nombre_usuario }}" readonly>
-                </div>
-
-                <div>
-                    <label for="correo">Correo</label>
-                    <input id="correo" type="email" name="correo" maxlength="50" required
-                           value="{{ perfil.correo }}" readonly>
-                </div>
-
-                <div>
-                    <label for="contrasena">Contraseña</label>
-                    <input id="contrasena" type="password" name="contrasena" minlength="4" required
-                           value="{{ perfil.contrasena }}" readonly>
-                </div>
-
-                <div>
-                    <label>Saldo</label>
-                    <input type="text" value="S/ {{ perfil.saldo }}" disabled>
-                </div>
-
-                <div>
-                    <label>N.º de compras</label>
-                    <input type="text" value="{{ perfil.num_compras }}" disabled>
-                </div>
+    <main>
+        <section class="container">
+            <div class="between flex wrap items-end mb-4">
+                <h1 class="mb-0">Perfil del Cliente</h1>
             </div>
 
-            <div class="modal__actions">
-                <div id="botonesLectura">
-                    <button type="button" class="btn" id="btnEditar">Editar</button>
+            {% if errors %}
+                <div class="card p-3 mb-3">
+                    <strong>Errores:</strong>
+                    <pre class="mt-2">{{ errors }}</pre>
                 </div>
-                <div id="botonesEdicion" class="hidden">
-                    <button type="submit" class="btn">Guardar</button>
-                    <button type="button" class="btn btn--muted" id="btnCancelar">Cancelar</button>
-                </div>
-            </div>
-        </form>
+            {% endif %}
 
-        <!-- Lista de compras (coherente con Catalogo: grid de cartas) -->
-        <h2 class="mt-5">Tus compras</h2>
-        <ul id="tblBody" class="catalog-grid" aria-label="Productos comprados">
-            {% for p in filas %}
-                <li class="catalog-card">
-                    <figure class="catalog-card__media">
-                        {% if p.imagen_1_id %}
-                            <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}"
-                                 alt="Imagen de {{ p.nombre }}" loading="lazy">
-                        {% else %}
-                            <div class="badge badge--muted">Sin imagen</div>
-                        {% endif %}
-                    </figure>
+            <!-- Formulario de perfil -->
+            <form id="formPerfil" method="post" action="" class="card p-4">
+                {% csrf_token %}
 
-                    <div class="catalog-card__body">
-                        <div class="catalog-card__meta">
-                            <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
-                                <strong>{{ p.nombre }}</strong>
-                            </a>
-                            <span class="text-muted">{{ p.calificacion_promedio|default:"-" }} ★</span>
-                        </div>
-
-                        <div><strong>Precio:</strong> {{ p.precio|default:"-" }}</div>
-                        <div><strong>Autor:</strong> {{ p.autor|default:"-" }}</div>
-                        <div><strong>Compras:</strong> {{ p.compras }}</div>
+                <div class="form-row">
+                    <div>
+                        <label for="nombre_usuario">Nombre de Usuario</label>
+                        <input id="nombre_usuario" type="text" name="nombre_usuario" maxlength="10" required
+                               value="{{ perfil.nombre_usuario }}" readonly>
                     </div>
-                </li>
-            {% empty %}
-                <li class="text-muted">Sin resultados</li>
-            {% endfor %}
-        </ul>
 
-        <!-- Paginador -->
-        <div id="pager" class="mt-3">
-            <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-            <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo;
-                Ant
-            </button>
-            <span>Página {{ page }} de {{ total_pages }}</span>
-            <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>
-                Sig &rsaquo;
-            </button>
-            <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>
-                Último &raquo;
-            </button>
-        </div>
-    </section>
-</main>
+                    <div>
+                        <label for="correo">Correo</label>
+                        <input id="correo" type="email" name="correo" maxlength="50" required
+                               value="{{ perfil.correo }}" readonly>
+                    </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("formPerfil");
-        const btnEditar = document.getElementById("btnEditar");
-        const btnCancelar = document.getElementById("btnCancelar");
-        const bLectura = document.getElementById("botonesLectura");
-        const bEdicion = document.getElementById("botonesEdicion");
+                    <div>
+                        <label for="contrasena">Contraseña</label>
+                        <input id="contrasena" type="password" name="contrasena" minlength="4" required
+                               value="{{ perfil.contrasena }}" readonly>
+                    </div>
 
-        const campos = ["nombre_usuario", "correo", "contrasena"].map(
-            n => form.querySelector(`[name="${n}"]`)
-        );
+                    <div>
+                        <label>Saldo</label>
+                        <input style="color: #475569" type="text" value="S/ {{ perfil.saldo }}" disabled>
+                    </div>
 
-        const originales = Object.fromEntries(campos.map(c => [c.name, c.value]));
+                    <div>
+                        <label>N.º de compras</label>
+                        <input style="color: #475569" type="text" value="{{ perfil.num_compras }}" disabled>
+                    </div>
+                </div>
 
-        btnEditar.onclick = () => {
-            campos.forEach(c => c.readOnly = false);
-            bLectura.classList.add('hidden');
-            bEdicion.classList.remove('hidden');
-            campos[0].focus();
-        };
+                <div class="modal__actions">
+                    <div id="botonesLectura">
+                        <button type="button" class="btn" id="btnEditar">Editar</button>
+                    </div>
+                    <div id="botonesEdicion" class="hidden">
+                        <button type="submit" class="btn">Guardar</button>
+                        <button type="button" class="btn btn--muted" id="btnCancelar">Cancelar</button>
+                    </div>
+                </div>
+            </form>
 
-        btnCancelar.onclick = () => {
-            campos.forEach(c => {
-                c.readOnly = true;
-                c.value = originales[c.name];
+            <!-- Lista de compras -->
+            <h2 class="mt-5">Tus compras</h2>
+            <ul id="tblBody" class="catalog-grid" aria-label="Resultados del catálogo">
+                {% for p in filas %}
+                    <li class="catalog-card">
+                        <figure class="catalog-card__media flex center">
+                            <a href="{% url 'vistaProducto:detalle_producto' p.id %}" class="catalog-card__link">
+
+                                {% if p.imagen_1_id %}
+                                    <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}"
+                                         alt="Imagen de {{ p.nombre }}" loading="lazy">
+                                {% else %}
+                                    <div class="badge badge--muted">Sin imagen</div>
+                                {% endif %}
+                            </a>
+                        </figure>
+
+                        <div class="catalog-card__body">
+                            <div class="catalog-card__row meta">
+                                <h3 class="catalog-card__title">
+                                    <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
+                                        {{ p.nombre }}
+                                    </a>
+                                </h3>
+                                <span class="rating" data-rating="{{ p.calificacion_promedio|default:0 }}"></span>
+                            </div>
+
+                            <p class="catalog-card__desc">
+                                <strong>Por:</strong>
+                                <span class="tag tag--author">{{ p.autor|default:"-" }}</span>
+                            </p>
+
+                            <div class="catalog-card__row meta">
+                                <div><strong>Precio:</strong> {{ p.precio|default:"-" }}</div>
+                                <small class="text-muted">{{ p.compras }} compras</small>
+                            </div>
+                        </div>
+                    </li>
+
+                {% empty %}
+                    <li class="text-muted">Sin resultados</li>
+                {% endfor %}
+            </ul>
+
+
+            <!-- Paginador -->
+            <div id="pager" class="mt-3">
+                <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero
+                </button>
+                <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>
+                    &lsaquo;
+                    Ant
+                </button>
+                <span>Página {{ page }} de {{ total_pages }}</span>
+                <button type="button" onclick="irPagina({{ page|add:1 }})"
+                        {% if page >= total_pages %}disabled{% endif %}>
+                    Sig &rsaquo;
+                </button>
+                <button type="button" onclick="irPagina({{ total_pages }})"
+                        {% if page >= total_pages %}disabled{% endif %}>
+                    Último &raquo;
+                </button>
+            </div>
+        </section>
+    </main>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("formPerfil");
+            const btnEditar = document.getElementById("btnEditar");
+            const btnCancelar = document.getElementById("btnCancelar");
+            const bLectura = document.getElementById("botonesLectura");
+            const bEdicion = document.getElementById("botonesEdicion");
+
+            const campos = ["nombre_usuario", "correo", "contrasena"].map(
+                n => form.querySelector(`[name="${n}"]`)
+            );
+
+            const originales = Object.fromEntries(campos.map(c => [c.name, c.value]));
+
+            btnEditar.onclick = () => {
+                campos.forEach(c => c.readOnly = false);
+                bLectura.classList.add('hidden');
+                bEdicion.classList.remove('hidden');
+                campos[0].focus();
+            };
+
+            btnCancelar.onclick = () => {
+                campos.forEach(c => {
+                    c.readOnly = true;
+                    c.value = originales[c.name];
+                });
+                bLectura.classList.remove('hidden');
+                bEdicion.classList.add('hidden');
+            };
+
+            // al enviar, el backend valida y responde; regresamos a lectura
+            form.addEventListener('submit', () => {
+                campos.forEach(c => c.readOnly = true);
+                bLectura.classList.remove('hidden');
+                bEdicion.classList.add('hidden');
             });
-            bLectura.classList.remove('hidden');
-            bEdicion.classList.add('hidden');
-        };
-
-        // al enviar, el backend valida y responde; regresamos a lectura
-        form.addEventListener('submit', () => {
-            campos.forEach(c => c.readOnly = true);
-            bLectura.classList.remove('hidden');
-            bEdicion.classList.add('hidden');
         });
-    });
 
-    function irPagina(n) {
-        const url = new URL(window.location.href);
-        url.searchParams.set("page", n);
-        window.location.href = url.toString();
-    }
-</script>
-</body>
-</html>
+        function irPagina(n) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("page", n);
+            window.location.href = url.toString();
+        }
+
+        function renderStars(rating = 0) {
+            const full = Math.floor(rating);
+            const half = rating % 1 >= 0.5 ? 1 : 0;
+            const empty = 5 - full - half;
+            return '★'.repeat(full) + (half ? '⯪' : '') + '☆'.repeat(empty);
+        }
+
+        document.querySelectorAll('.rating').forEach(el => {
+            const value = parseFloat(el.dataset.rating) || 0;
+            el.innerHTML = renderStars(value);
+        });
+    </script>
+{% endblock %}

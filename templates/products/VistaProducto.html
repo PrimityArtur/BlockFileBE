@@ -1,272 +1,257 @@
-<!-- templates/producto/DetalleProducto.html -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ p.nombre }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderCliente.html' %}
 
-    {% load static %}
-    <!-- Sistema CSS modular -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
+{% block title %}{{ p.nombre }}{% endblock %}
 
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-        <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
-        <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
-    </nav>
-</header>
+{% block content %}
+    <main>
+        <section class="container">
 
-<main>
-    <section class="container">
-
-        {% if messages %}
-            <div class="alert alert--ok mb-3">
-                {% for message in messages %}
-                    <p class="msg-compra">{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <div class="grid gap-4" style="grid-template-columns: 1.2fr .8fr;">
-
-            <!-- Información del producto -->
-            <article class="card p-4">
-                <h2 class="mb-3">{{ p.nombre }}</h2>
-
-                {% if p.imagen_ids %}
-                    <figure class="catalog-card__media mb-3">
-                        <img id="mainImg" src="{% url 'vistaProducto:api_imagen' p.imagen_ids.0 %}"
-                             alt="Imagen principal de {{ p.nombre }}">
-                    </figure>
-
-                    {% if p.imagen_ids|length > 1 %}
-                        <div class="carousel carousel--thumbs mt-2">
-                            <div id="thumbTrack" class="carousel__track" tabindex="0"
-                                 aria-label="Imágenes del producto">
-                                {% for img_id in p.imagen_ids %}
-                                    <div class="carousel__item{% if forloop.first %} is-active{% endif %}"
-                                         data-img="{% url 'vistaProducto:api_imagen' img_id %}">
-                                        <img src="{% url 'vistaProducto:api_imagen' img_id %}"
-                                             alt="Vista {{ forloop.counter }}">
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <p class="text-muted">Sin imágenes disponibles.</p>
-                {% endif %}
-
-                <p class="mt-3">{{ p.descripcion }}</p>
-            </article>
-
-            <!-- Acciones y detalles -->
-            <aside class="grid gap-4">
-                <div class="card p-4">
-                    <p><strong>Precio:</strong> S/ {{ p.precio|floatformat:2 }}</p>
-                    {% if p.saldo_cliente is not None %}
-                        <p><strong>Tu saldo:</strong> S/ {{ p.saldo_cliente|floatformat:2 }}</p>
-                    {% endif %}
-                    {% if not mostrar_acciones %}
-                        <form method="post" action="">
-                            {% csrf_token %}
-                            <button type="submit" class="btn">Comprar</button>
-                        </form>
-                    {% endif %}
-                </div>
-
-                <div class="card p-4">
-                    <p><strong>Calificación promedio:</strong> {{ p.calificacion_promedio|default:"-" }}</p>
-                    <p><strong>Compras:</strong> {{ p.compras }}</p>
-                    <p><strong>Autor:</strong> {{ p.autor|default:"-" }}</p>
-                    <p><strong>Versión:</strong> {{ p.version|default:"-" }}</p>
-                    <p><strong>Categoría:</strong> {{ p.categoria|default:"-" }}</p>
-                    <p><strong>Fecha:</strong> {{ p.fecha_publicacion|date:"Y-m-d H:i" }}</p>
-                </div>
-
-                {% if mostrar_acciones %}
-                    <div class="card p-4">
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="producto_id" value="{{ p.id }}">
-                            <button type="submit"
-                                    formaction="{% url 'vistaProducto:descargar_producto' p.id %}"
-                                    formmethod="post"
-                                    class="btn">Descargar
-                            </button>
-                            <button type="button" id="btnAbrirCalificar" class="btn btn--muted">Calificar</button>
-                            <button type="button" id="btnAbrirComentar" class="btn btn--muted">Comentar</button>
-                        </form>
-                    </div>
-                {% endif %}
-            </aside>
-        </div>
-
-        <!-- Comentarios -->
-        <section class="mt-5">
-            <h3>Comentarios</h3>
-            {% if comentarios %}
-                <div class="grid gap-3">
-                    {% for c in comentarios %}
-                        <article class="card p-3">
-                            <p><strong>{{ c.cliente }}</strong> | ⭐ {{ c.calificacion|default:"-" }}
-                                | {{ c.fecha|date:"Y-m-d H:i" }}</p>
-                            <p>{{ c.descripcion }}</p>
-                        </article>
+            {% if messages %}
+                <div class="alert alert--ok mb-3">
+                    {% for message in messages %}
+                        <p class="msg-compra">{{ message }}</p>
                     {% endfor %}
                 </div>
-            {% else %}
-                <p class="text-muted">No hay comentarios para este producto.</p>
             {% endif %}
+
+            <!-- Grid responsive de 2 columnas (stack en móvil) -->
+            <div class="grid gap-4 product-view">
+
+                <!-- Información del producto -->
+                <article class="card p-4">
+                    <h1 class="mb-3">{{ p.nombre }}</h1>
+
+                    {% if p.imagen_ids %}
+                        <figure class="catalog-card__media__principal mb-3">
+                            <img id="mainImg" src="{% url 'vistaProducto:api_imagen' p.imagen_ids.0 %}"
+                                 alt="Imagen principal de {{ p.nombre }}">
+                        </figure>
+
+                        {% if p.imagen_ids|length > 1 %}
+                            <div class="carousel carousel--thumbs mt-2">
+                                <div id="thumbTrack" class="carousel__track" tabindex="0"
+                                     aria-label="Imágenes del producto">
+                                    {% for img_id in p.imagen_ids %}
+                                        <div class="carousel__item{% if forloop.first %} is-active{% endif %}"
+                                             data-img="{% url 'vistaProducto:api_imagen' img_id %}">
+                                            <img src="{% url 'vistaProducto:api_imagen' img_id %}"
+                                                 alt="Vista {{ forloop.counter }}">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Sin imágenes disponibles.</p>
+                    {% endif %}
+
+                    <p class="mt-3">{{ p.descripcion }}</p>
+                </article>
+
+                <!-- Acciones y detalles -->
+                <aside class="grid gap-4">
+                    <div class="card p-4">
+                        <div class="flex between wrap gap-2">
+                            <p><strong>Precio:</strong> S/ {{ p.precio|floatformat:2 }}</p>
+                            {% if p.saldo_cliente is not None %}
+                                <p><strong>Tu saldo:</strong> S/ {{ p.saldo_cliente|floatformat:2 }}</p>
+                            {% endif %}
+                        </div>
+
+                        {% if not mostrar_acciones %}
+                            <form method="post" action="" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn w-100 sm:w-auto">Comprar</button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <div class="card p-4 gap-2">
+                        <div class="flex column-center mb-4">
+                            <div class="rating fs-3" data-rating="{{ p.calificacion_promedio|default:0 }}"></div>
+                            <div class="text-muted"> {{ p.compras }} <strong>compras</strong></div>
+                        </div>
+                        <p><strong>Autor:</strong> {{ p.autor|default:"-" }}</p>
+                        <p><strong>Versión:</strong> {{ p.version|default:"-" }}</p>
+                        <p><strong>Categoría:</strong> {{ p.categoria|default:"-" }}</p>
+                        <p><strong>Fecha:</strong> {{ p.fecha_publicacion|date:"Y-m-d H:i" }}</p>
+                    </div>
+
+                    {% if mostrar_acciones %}
+                        <div class="card p-4">
+                            <form method="post" class="grid gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="producto_id" value="{{ p.id }}">
+                                <button type="submit"
+                                        formaction="{% url 'vistaProducto:descargar_producto' p.id %}"
+                                        formmethod="post"
+                                        class="btn w-100 sm:w-auto">Descargar
+                                </button>
+                                <button type="button" id="btnAbrirCalificar" class="btn btn--muted w-100 sm:w-auto">
+                                    Calificar
+                                </button>
+                                <button type="button" id="btnAbrirComentar" class="btn btn--muted w-100 sm:w-auto">
+                                    Comentar
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </aside>
+            </div>
+
+            <!-- Comentarios -->
+            <section class="mt-6">
+                <h2>Comentarios</h2>
+                {% if comentarios %}
+                    <div class="grid gap-3 comments-grid">
+                        {% for c in comentarios %}
+                            <article class="card p-3">
+                                <div class="flex between wrap  p-3">
+                                    <div class="flex center wrap gap-2 fs-2">
+                                        <strong>{{ c.cliente }}</strong>
+                                        <div class="rating fs-3" data-rating="{{ c.calificacion|default:0 }}"></div>
+                                    </div>
+                                    <p>{{ c.fecha|date:"Y-m-d H:i" }}</p>
+                                </div>
+                                <p class="p-3 mt-0">{{ c.descripcion }}</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay comentarios para este producto.</p>
+                {% endif %}
+            </section>
         </section>
-    </section>
-</main>
+    </main>
 
-<!-- MODAL CALIFICAR -->
-<div id="modalCalificar" class="modal" aria-hidden="true" aria-labelledby="titleCalificar" role="dialog">
-    <div class="modal__dialog">
-        <div class="modal__header">
-            <span id="titleCalificar" class="modal__title">Calificar Producto</span>
-            <button type="button" class="btn btn--ghost" id="btnCerrarCalificar" aria-label="Cerrar">✕</button>
+    <!-- MODAL CALIFICAR -->
+    <div id="modalCalificar" class="modal" aria-hidden="true" aria-labelledby="titleCalificar" role="dialog">
+        <div class="modal__dialog">
+            <div class="modal__header">
+                <span id="titleCalificar" class="modal__title">Calificar Producto</span>
+                <button type="button" class="btn btn--ghost" id="btnCerrarCalificar" aria-label="Cerrar">✕</button>
+            </div>
+            <form id="formCalificar" method="post" action="{% url 'vistaProducto:calificar_producto' p.id %}"
+                  class="grid gap-3">
+                {% csrf_token %}
+                <div>
+                    <label for="inpCalificacion">Selecciona una calificación (1–5):</label>
+                    <input type="number" id="inpCalificacion" name="calificacion" min="1" max="5" required>
+                </div>
+                <div class="modal__actions">
+                    <button type="submit" class="btn">Guardar</button>
+                    <button type="button" class="btn btn--muted" id="btnCerrarCalificar2">Cancelar</button>
+                </div>
+            </form>
         </div>
-        <form id="formCalificar" method="post" action="{% url 'vistaProducto:calificar_producto' p.id %}"
-              class="grid gap-3">
-            {% csrf_token %}
-            <div>
-                <label for="inpCalificacion">Selecciona una calificación (1–5):</label>
-                <input type="number" id="inpCalificacion" name="calificacion" min="1" max="5" required>
-            </div>
-            <div class="modal__actions">
-                <button type="submit" class="btn">Guardar</button>
-                <button type="button" class="btn btn--muted" id="btnCerrarCalificar2">Cancelar</button>
-            </div>
-        </form>
     </div>
-</div>
 
-<!-- MODAL COMENTAR -->
-<div id="modalComentar" class="modal" aria-hidden="true" aria-labelledby="titleComentar" role="dialog">
-    <div class="modal__dialog">
-        <div class="modal__header">
-            <span id="titleComentar" class="modal__title">Comentar Producto</span>
-            <button type="button" class="btn btn--ghost" id="btnCerrarComentar" aria-label="Cerrar">✕</button>
+    <!-- MODAL COMENTAR -->
+    <div id="modalComentar" class="modal" aria-hidden="true" aria-labelledby="titleComentar" role="dialog">
+        <div class="modal__dialog">
+            <div class="modal__header">
+                <span id="titleComentar" class="modal__title">Comentar Producto</span>
+                <button type="button" class="btn btn--ghost" id="btnCerrarComentar" aria-label="Cerrar">✕</button>
+            </div>
+            <form id="formComentar" method="post" action="{% url 'vistaProducto:comentar_producto' p.id %}"
+                  class="grid gap-3">
+                {% csrf_token %}
+                <div>
+                    <label for="inpDescripcion">Escribe tu comentario:</label>
+                    <textarea id="inpDescripcion" name="descripcion" rows="4" required></textarea>
+                </div>
+                <div class="modal__actions">
+                    <button type="submit" class="btn">Enviar</button>
+                    <button type="button" class="btn btn--muted" id="btnCerrarComentar2">Cancelar</button>
+                </div>
+            </form>
         </div>
-        <form id="formComentar" method="post" action="{% url 'vistaProducto:comentar_producto' p.id %}"
-              class="grid gap-3">
-            {% csrf_token %}
-            <div>
-                <label for="inpDescripcion">Escribe tu comentario:</label>
-                <textarea id="inpDescripcion" name="descripcion" rows="4" required></textarea>
-            </div>
-            <div class="modal__actions">
-                <button type="submit" class="btn">Enviar</button>
-                <button type="button" class="btn btn--muted" id="btnCerrarComentar2">Cancelar</button>
-            </div>
-        </form>
     </div>
-</div>
+{% endblock %}
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const $ = id => document.getElementById(id);
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const $ = id => document.getElementById(id);
 
-        // FUNCIONES PARA ABRIR Y CERRAR MODALES
-        function abrirModal(id) {
-            const modal = $(id);
-            modal.classList.add('abierto');
-            modal.setAttribute('aria-hidden', 'false');
-        }
-
-        function cerrarModal(id) {
-            const modal = $(id);
-            modal.classList.remove('abierto');
-            modal.setAttribute('aria-hidden', 'true');
-        }
-
-        // --- Abrir modales ---
-        $('btnAbrirCalificar')?.addEventListener('click', () => abrirModal('modalCalificar'));
-        $('btnAbrirComentar')?.addEventListener('click', () => abrirModal('modalComentar'));
-
-        // --- Cerrar modales ---
-        ['btnCerrarCalificar', 'btnCerrarCalificar2'].forEach(id =>
-            $(id)?.addEventListener('click', () => cerrarModal('modalCalificar'))
-        );
-        ['btnCerrarComentar', 'btnCerrarComentar2'].forEach(id =>
-            $(id)?.addEventListener('click', () => cerrarModal('modalComentar'))
-        );
-
-        // Cerrar con click fuera
-        ['modalCalificar', 'modalComentar'].forEach(id => {
-            $(id)?.addEventListener('click', (e) => {
-                if (e.target.id === id) cerrarModal(id);
-            });
-        });
-
-        // Cerrar con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                cerrarModal('modalCalificar');
-                cerrarModal('modalComentar');
+            // MODALES
+            function abrirModal(id) {
+                const m = $(id);
+                m.classList.add('abierto');
+                m.setAttribute('aria-hidden', 'false');
             }
-        });
 
-        // --- Envío AJAX opcional (puedes quitarlo si prefieres POST normal) ---
-        const ajaxSubmit = (formId) => {
-            const form = $(formId);
-            if (!form) return;
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await fetch(form.action, {method: 'POST', body: new FormData(form)});
-                cerrarModal(formId === 'formCalificar' ? 'modalCalificar' : 'modalComentar');
-                location.reload();
-            });
-        };
-        ajaxSubmit('formCalificar');
-        ajaxSubmit('formComentar');
+            function cerrarModal(id) {
+                const m = $(id);
+                m.classList.remove('abierto');
+                m.setAttribute('aria-hidden', 'true');
+            }
 
-        const mainImg = document.getElementById('mainImg');
-        const track = document.getElementById('thumbTrack');
-
-        if (track && mainImg) {
-            track.addEventListener('click', (e) => {
-                const item = e.target.closest('.carousel__item');
-                if (!item) return;
-
-                const src = item.getAttribute('data-img');
-                if (!src) return;
-
-                // Cambia imagen principal
-                mainImg.src = src;
-
-                // Marca activo visualmente
-                track.querySelectorAll('.carousel__item.is-active')
-                    .forEach(el => el.classList.remove('is-active'));
-                item.classList.add('is-active');
-
-                // Centra la miniatura seleccionada
-                item.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-            });
-
-            // Scroll horizontal
-            track.addEventListener('wheel', (e) => {
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                    track.scrollLeft += e.deltaY;
-                    e.preventDefault();
+            $('btnAbrirCalificar')?.addEventListener('click', () => abrirModal('modalCalificar'));
+            $('btnAbrirComentar')?.addEventListener('click', () => abrirModal('modalComentar'));
+            ['btnCerrarCalificar', 'btnCerrarCalificar2'].forEach(id => $(id)?.addEventListener('click', () => cerrarModal('modalCalificar')));
+            ['btnCerrarComentar', 'btnCerrarComentar2'].forEach(id => $(id)?.addEventListener('click', () => cerrarModal('modalComentar')));
+            ['modalCalificar', 'modalComentar'].forEach(id => $(id)?.addEventListener('click', (e) => {
+                if (e.target.id === id) cerrarModal(id);
+            }));
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cerrarModal('modalCalificar');
+                    cerrarModal('modalComentar');
                 }
-            }, {passive: false});
-        }
-    });
-</script>
+            });
 
-</body>
-</html>
+            // Envío AJAX opcional (puedes quitarlo si prefieres POST normal)
+            const ajaxSubmit = (formId) => {
+                const form = $(formId);
+                if (!form) return;
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await fetch(form.action, {method: 'POST', body: new FormData(form)});
+                    cerrarModal(formId === 'formCalificar' ? 'modalCalificar' : 'modalComentar');
+                    location.reload();
+                });
+            };
+            ajaxSubmit('formCalificar');
+            ajaxSubmit('formComentar');
+
+            // CARRUSEL DE MINIATURAS
+            const mainImg = document.getElementById('mainImg');
+            const track = document.getElementById('thumbTrack');
+            if (track && mainImg) {
+                track.addEventListener('click', (e) => {
+                    const item = e.target.closest('.carousel__item');
+                    if (!item) return;
+                    const src = item.getAttribute('data-img');
+                    if (!src) return;
+
+                    mainImg.src = src;
+                    track.querySelectorAll('.carousel__item.is-active').forEach(el => el.classList.remove('is-active'));
+                    item.classList.add('is-active');
+                    item.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+                });
+
+                // Scroll horizontal cómodo con rueda/touchpad
+                track.addEventListener('wheel', (e) => {
+                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                        track.scrollLeft += e.deltaY;
+                        e.preventDefault();
+                    }
+                }, {passive: false});
+            }
+
+            // RATING simple (texto estrellas). Si usas la versión visual CSS, cambia aquí.
+            function renderStars(rating = 0) {
+                const full = Math.floor(rating);
+                const half = rating % 1 >= 0.5 ? 1 : 0;
+                const empty = 5 - full - half;
+                return '★'.repeat(full) + (half ? '⯪' : '') + '☆'.repeat(empty);
+            }
+
+            document.querySelectorAll('.rating').forEach(el => {
+                const value = parseFloat(el.dataset.rating) || 0;
+                el.innerHTML = renderStars(value);
+            });
+        });
+    </script>
+{% endblock %}

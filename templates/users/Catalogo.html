@@ -1,189 +1,196 @@
-<!-- templates/catalogo/Catalogo.html -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <title>Catálogo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderCliente.html' %}
 
-    {% load static %}
-    <!-- Sistema CSS modular -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
-        <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
-        <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
-    </nav>
-</header>
+{% block title %}Catálogo{% endblock %}
 
-<main>
-    <section class="container">
-        <!-- Buscador -->
-        <form id="formBuscar" method="get" action="" class="card p-4">
-            <div class="form-row">
-                <div>
-                    <label for="f_nombre">Nombre</label>
-                    <input id="f_nombre" type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-                </div>
-                <div>
-                    <label for="f_autor">Autor</label>
-                    <input id="f_autor" type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
-                </div>
-                <div>
-                    <label for="f_categoria">Categoría</label>
-                    <input id="f_categoria" type="text" name="categoria" placeholder="Categoría"
-                           value="{{ filtros.categoria }}">
-                </div>
-                <div class="items-end" style="display:flex;">
-                    <button type="submit" class="btn">Buscar</button>
-                </div>
-            </div>
-        </form>
-
-        <!-- Grid de productos tipo index, usando variables del sistema -->
-        <ul id="tblBody" class="catalog-grid" aria-label="Resultados del catálogo">
-            {% for p in filas %}
-                <li class="catalog-card">
-                    <figure class="catalog-card__media">
-                        {% if p.imagen_1_id %}
-                            <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}"
-                                 alt="Imagen de {{ p.nombre }}" loading="lazy">
-                        {% else %}
-                            <div class="badge badge--muted">Sin imagen</div>
-                        {% endif %}
-                    </figure>
-
-                    <div class="catalog-card__body">
-                        <div class="catalog-card__meta">
-                            <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
-                                <strong>{{ p.nombre }}</strong>
-                            </a>
-                            <span class="text-muted">{{ p.calificacion_promedio|default:"-" }} ★</span>
-                        </div>
-
-                        <div><strong>Precio:</strong> {{ p.precio|default:"-" }}</div>
-                        <div><strong>Autor:</strong> {{ p.autor|default:"-" }}</div>
-                        <div><strong>Compras:</strong> {{ p.compras }}</div>
+{% block content %}
+    <main>
+        <section class="container">
+            <!-- Buscador -->
+            <form id="formBuscar" method="get" action="">
+                <div class="form-row">
+                    <div>
+                        <label for="f_nombre">Nombre</label>
+                        <input id="f_nombre" type="text" name="nombre" placeholder="Nombre"
+                               value="{{ filtros.nombre }}">
                     </div>
-                </li>
-            {% empty %}
-                <li class="text-muted">Sin resultados</li>
-            {% endfor %}
-        </ul>
+                    <div>
+                        <label for="f_autor">Autor</label>
+                        <input id="f_autor" type="text" name="autor" placeholder="Autor" value="{{ filtros.autor }}">
+                    </div>
+                    <div>
+                        <label for="f_categoria">Categoría</label>
+                        <input id="f_categoria" type="text" name="categoria" placeholder="Categoría"
+                               value="{{ filtros.categoria }}">
+                    </div>
+                    <button type="submit" class="btn bold">Buscar</button>
+                </div>
+            </form>
 
-        <!-- Paginador -->
-        <div id="pager" class="mt-3">
-            <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero</button>
-            <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>&lsaquo;
-                Ant
-            </button>
-            <span>Página {{ page }} de {{ total_pages }}</span>
-            <button type="button" onclick="irPagina({{ page|add:1 }})" {% if page >= total_pages %}disabled{% endif %}>
-                Sig &rsaquo;
-            </button>
-            <button type="button" onclick="irPagina({{ total_pages }})" {% if page >= total_pages %}disabled{% endif %}>
-                Último &raquo;
-            </button>
-        </div>
-    </section>
-</main>
+            <!-- Grid de productos -->
+            <ul id="tblBody" class="catalog-grid" aria-label="Resultados del catálogo">
+                {% for p in filas %}
+                    <li class="catalog-card">
+                        <figure class="catalog-card__media flex center"  >
+                            <a href="{% url 'vistaProducto:detalle_producto' p.id %}" class="catalog-card__link">
 
-<script>
-    (() => {
-        const $ = id => document.getElementById(id);
+                            {% if p.imagen_1_id %}
+                                <img src="{% url 'catalogoProductos:api_imagen' p.imagen_1_id %}"
+                                     alt="Imagen de {{ p.nombre }}" loading="lazy">
+                            {% else %}
+                                <div class="badge badge--muted">Sin imagen</div>
+                            {% endif %}
+                            </a>
+                        </figure>
 
-        const formBuscar = $('formBuscar');
-        const tbody = $('tblBody');
-        const pager = $('pager');
-        const API_LISTAR = "{% url 'catalogoProductos:api_listar' %}";
-        const buildDetailUrl = id => "{% url 'vistaProducto:detalle_producto' 0 %}".replace("0/", `${id}/`);
-        const buildImgUrl = id => "{% url 'catalogoProductos:api_imagen' 0 %}".replace("0/", `${id}/`);
+                        <div class="catalog-card__body">
+                            <div class="catalog-card__row meta">
+                                <h3 class="catalog-card__title">
+                                    <a href="{% url 'vistaProducto:detalle_producto' p.id %}">
+                                        <strong>{{ p.nombre }}</strong>
+                                    </a>
+                                </h3>
+                                <span class="rating"> {{ p.calificacion_promedio|default:"-" }} </span>
+                            </div>
 
-        const qFromForm = () => {
-            const q = new URLSearchParams(new FormData(formBuscar));
-            [...q.keys()].forEach(k => {
-                if (!q.get(k)?.trim()) q.delete(k);
-            });
-            return q;
-        };
+                            <p class="catalog-card__desc">
+                                <strong>Por:</strong>
+                                <span class="tag tag--author">{{ p.autor|default:"-" }}</span>
+                            </p>
 
-        async function buscar(page = 1) {
-            const q = qFromForm();
-            q.set('page', page);
-            try {
-                const r = await fetch(`${API_LISTAR}?${q}`);
-                const resp = await r.json();
-                if (!resp.ok) return alert('Error al listar');
-                renderTabla(resp.rows);
-                renderPaginador(resp.page, resp.total_pages);
-            } catch {
-                alert('No se pudo obtener la lista');
-            }
-        }
+                            <div class="catalog-card__row meta">
+                                <div><strong>Precio:</strong> {{ p.precio|default:"-" }}</div>
+                                <small class="text-muted">{{ p.compras }} compras</small>
+                            </div>
+                        </div>
+                    </li>
 
-        function renderTabla(rows) {
-            if (!rows?.length) {
-                tbody.innerHTML = `<li class="text-muted">Sin resultados</li>`;
-                return;
-            }
-            tbody.innerHTML = rows.map(p => `
-        <li class="catalog-card">
-          <figure class="catalog-card__media">
-            ${p.imagen_1_id
-                ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${esc(p.nombre)}" loading="lazy">`
-                : `<div class="badge badge--muted">Sin imagen</div>`
-            }
-          </figure>
-          <div class="catalog-card__body">
-            <div class="catalog-card__meta">
-              <a href="${buildDetailUrl(p.id)}"><strong>${esc(p.nombre)}</strong></a>
-              <span class="text-muted">${p.calificacion_promedio ?? '-'} ★</span>
+                {% empty %}
+                    <li class="text-muted">Sin resultados</li>
+                {% endfor %}
+            </ul>
+
+            <!-- Paginador -->
+            <div id="pager">
+                <button type="button" onclick="irPagina(1)" {% if page == 1 %}disabled{% endif %}>&laquo; Primero
+                </button>
+                <button type="button" onclick="irPagina({{ page|add:-1 }})" {% if page <= 1 %}disabled{% endif %}>
+                    &lsaquo;
+                    Ant
+                </button>
+                <span>Página {{ page }} de {{ total_pages }}</span>
+                <button type="button" onclick="irPagina({{ page|add:1 }})"
+                        {% if page >= total_pages %}disabled{% endif %}>
+                    Sig &rsaquo;
+                </button>
+                <button type="button" onclick="irPagina({{ total_pages }})"
+                        {% if page >= total_pages %}disabled{% endif %}>
+                    Último &raquo;
+                </button>
             </div>
-            <div><strong>Precio:</strong> ${p.precio ?? '-'}</div>
-            <div><strong>Autor:</strong> ${esc(p.autor || '-')}</div>
-            <div><strong>Compras:</strong> ${p.compras ?? 0}</div>
-          </div>
-        </li>
-      `).join('');
-        }
+        </section>
+    </main>
+{% endblock %}
 
-        function renderPaginador(page, total) {
-            const b = (label, target, disabled) =>
-                `<button type="button" onclick="irPagina(${target})" ${disabled ? 'disabled' : ''}>${label}</button>`;
-            pager.innerHTML = [
-                b('&laquo; Primero', 1, page <= 1),
-                b('&lsaquo; Ant', page - 1, page <= 1),
-                `<span>Página ${page} de ${total}</span>`,
-                b('Sig &rsaquo;', page + 1, page >= total),
-                b('Último &raquo;', total, page >= total)
-            ].join('');
-        }
 
-        function esc(s) {
-            return String(s ?? '').replace(/[&<>"']/g, m => (
-                ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m])
-            ));
-        }
+{% block scripts %}
 
-        window.irPagina = p => buscar(Math.max(1, p));
+    <script>
+        (() => {
+            const $ = id => document.getElementById(id);
 
-        formBuscar.addEventListener('submit', e => {
-            e.preventDefault();
+            const formBuscar = $('formBuscar');
+            const tbody = $('tblBody');
+            const pager = $('pager');
+            const API_LISTAR = "{% url 'catalogoProductos:api_listar' %}";
+            const buildDetailUrl = id => "{% url 'vistaProducto:detalle_producto' 0 %}".replace("0/", `${id}/`);
+            const buildImgUrl = id => "{% url 'catalogoProductos:api_imagen' 0 %}".replace("0/", `${id}/`);
+
+            const qFromForm = () => {
+                const q = new URLSearchParams(new FormData(formBuscar));
+                [...q.keys()].forEach(k => {
+                    if (!q.get(k)?.trim()) q.delete(k);
+                });
+                return q;
+            };
+
+            async function buscar(page = 1) {
+                const q = qFromForm();
+                q.set('page', page);
+                try {
+                    const r = await fetch(`${API_LISTAR}?${q}`);
+                    const resp = await r.json();
+                    if (!resp.ok) return alert('Error al listar');
+                    renderTabla(resp.rows);
+                    renderPaginador(resp.page, resp.total_pages);
+                } catch {
+                    alert('No se pudo obtener la lista');
+                }
+            }
+
+            function renderTabla(rows) {
+                if (!rows?.length) {
+                    tbody.innerHTML = `<li class="text-muted">Sin resultados</li>`;
+                    return;
+                }
+                tbody.innerHTML = rows.map(p => `
+                <li class="catalog-card">
+                  <figure class="catalog-card__media flex center" >
+                  <a href="${buildDetailUrl(p.id)}" class="catalog-card__link">
+                    ${p.imagen_1_id ? `<img src="${buildImgUrl(p.imagen_1_id)}" alt="Imagen de ${p.nombre}" loading="lazy" >` : `<div class="badge badge--muted">Sin imagen</div>`}
+                  </a>
+                  </figure>
+                  <div class="catalog-card__body">
+                      <div class="catalog-card__row meta">
+                        <h3 class="catalog-card__title">
+                          <a href="${buildDetailUrl(p.id)}">${p.nombre}</a>
+                        </h3>
+                        <span class="rating">
+                          ${renderStars(p.calificacion_promedio ?? 0)}
+                        </span>
+                      </div>
+
+                      <p class="catalog-card__desc">
+                        <strong>Por:</strong>
+                        <span class="tag tag--author">${p.autor || '-'}</span>
+                      </p>
+
+                      <div class="catalog-card__row meta">
+                        <div><strong>Precio:</strong> ${p.precio ?? '-'}</div>
+                        <small class="text-muted">${p.compras ?? 0} compras</small>
+                      </div>
+                  </div>
+                </li>
+              `).join('');
+            }
+
+            function renderPaginador(page, total) {
+                const b = (label, target, disabled) =>
+                    `<button type="button" onclick="irPagina(${target})" ${disabled ? 'disabled' : ''}>${label}</button>`;
+                pager.innerHTML = [
+                    b('&laquo; Primero', 1, page <= 1),
+                    b('&lsaquo; Ant', page - 1, page <= 1),
+                    `<span>Página ${page} de ${total}</span>`,
+                    b('Sig &rsaquo;', page + 1, page >= total),
+                    b('Último &raquo;', total, page >= total)
+                ].join('');
+            }
+
+            function renderStars(rating = 0) {
+                const full = Math.floor(rating);
+                const half = rating % 1 >= 0.5 ? 1 : 0;
+                const empty = 5 - full - half;
+                return '★'.repeat(full) + (half ? '⯪' : '') + '☆'.repeat(empty);
+            }
+
+            window.irPagina = p => buscar(Math.max(1, p));
+
+            formBuscar.addEventListener('submit', e => {
+                e.preventDefault();
+                buscar(1);
+            });
+
+            // carga inicial
             buscar(1);
-        });
-
-        // carga inicial
-        buscar(1);
-    })();
-</script>
-</body>
-</html>
+        })();
+    </script>
+{% endblock %}

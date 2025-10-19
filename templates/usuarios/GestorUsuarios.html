@@ -1,316 +1,300 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <title>Gestión de Usuarios</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderAdministrador.html' %}
 
-    {% load static %}
-    <!-- Sistema CSS modular -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'users:perfil_admin' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
-        <a class="btn btn--ghost" href="{% url 'gestorCategorias:gestion' %}">Categorías</a>
-        <a class="btn btn--ghost" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
-    </nav>
-</header>
+{% block title %}Gestor Usuario{% endblock %}
 
-<main>
-    <section class="container">
-        <h1>Gestión de Usuarios</h1>
+{% block content %}
 
-        <!-- Buscador -->
-        <form id="formBuscar" method="get" action="" class="card p-4">
-            <div class="form-row">
-                <div>
-                    <label for="f_id">ID</label>
-                    <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
-                </div>
-                <div>
-                    <label for="f_nombre">Nombre</label>
-                    <input id="f_nombre" type="text" name="nombre" placeholder="Nombre" value="{{ filtros.nombre }}">
-                </div>
-                <div>
-                    <label for="f_saldo">Saldo</label>
-                    <input id="f_saldo" type="text" name="saldo" placeholder="Saldo" value="{{ filtros.saldo }}">
-                </div>
-                <div class="items-end" style="display:flex;">
-                    <button type="submit" class="btn">Buscar</button>
-                </div>
-            </div>
-        </form>
+    <main>
+        <section class="container">
+            <h1>Gestión de Usuarios</h1>
 
-        <!-- Tabla -->
-        <div class="card mt-4">
-            <div class="max-w">
-                <table aria-label="Listado de usuarios">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Saldo</th>
-                        <th class="text-right">Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tblBody">
-                    {% for p in filas %}
+            <!-- Buscador -->
+            <form id="formBuscar" method="get" action="" class="card p-4">
+                <div class="form-row">
+                    <div>
+                        <label for="f_id">ID</label>
+                        <input id="f_id" type="text" name="id" placeholder="ID" value="{{ filtros.id }}">
+                    </div>
+                    <div>
+                        <label for="f_nombre">Nombre</label>
+                        <input id="f_nombre" type="text" name="nombre" placeholder="Nombre"
+                               value="{{ filtros.nombre }}">
+                    </div>
+                    <div>
+                        <label for="f_saldo">Saldo</label>
+                        <input id="f_saldo" type="text" name="saldo" placeholder="Saldo" value="{{ filtros.saldo }}">
+                    </div>
+                    <div class="items-end" style="display:flex;">
+                        <button type="submit" class="btn">Buscar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla -->
+            <div class="card mt-4">
+                <div class="max-w overflow-auto">
+                    <table aria-label="Listado de usuarios">
+                        <thead>
                         <tr>
-                            <td>{{ p.id }}</td>
-                            <td>{{ p.nombre }}</td>
-                            <td>{{ p.saldo }}</td>
-                            <td class="text-right">
-                                <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
-                            </td>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Saldo</th>
+                            <th class="text-right">Acciones</th>
                         </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="4">Sin resultados</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Paginador -->
-        <div id="pager" class="mt-3"></div>
-        <noscript>
-            <div id="pager" class="mt-3">
-                <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>&laquo;
-                    Primero
-                </button>
-                <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
-                        {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
-                </button>
-                <span>Página {{ page }} de {{ total_pages }}</span>
-                <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
-                        {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
-                </button>
-                <button type="button" onclick="location.href='?page={{ total_pages }}' "
-                        {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
-                </button>
-            </div>
-        </noscript>
-    </section>
-</main>
-
-<!-- Modal (oculto por defecto; se muestra con .abierto) -->
-<div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
-    <div class="modal__dialog" role="document">
-        <div class="modal__header">
-            <span id="modalTitulo" class="modal__title">Usuario</span>
-            <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
-        </div>
-
-        <form id="formUsuario" class="grid gap-4" novalidate>
-            <input type="hidden" id="inpId" name="id"/>
-
-            <fieldset class="border rounded p-3">
-                <legend class="text-muted">Campos no modificables</legend>
-                <div class="grid grid-2 gap-3">
-                    <div>Fecha de creación: <span id="spFecha" class="text-muted">—</span></div>
-                    <div>Nombre de Usuario: <span id="spNombre" class="text-muted">—</span></div>
-                    <div>Correo: <span id="spCorreo" class="text-muted">—</span></div>
-                    <div>ID: <span id="spId" class="text-muted">—</span></div>
+                        </thead>
+                        <tbody id="tblBody">
+                        {% for p in filas %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>{{ p.nombre }}</td>
+                                <td>{{ p.saldo }}</td>
+                                <td class="text-right">
+                                    <button type="button" class="btn" onclick="abrirEditar({{ p.id }})">Editar</button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">Sin resultados</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            </fieldset>
-
-            <fieldset class="border rounded p-3">
-                <legend>Campos editables</legend>
-                <div>
-                    <label for="inpSaldo">Saldo</label>
-                    <input type="number" id="inpSaldo" name="saldo" min="0" step="0.01"/>
-                </div>
-            </fieldset>
-
-            <div class="modal__actions">
-                <button type="button" class="btn" id="btnAceptar">Aceptar</button>
-                <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
-                <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
             </div>
-        </form>
+
+            <!-- Paginador -->
+            <div id="pager" class="mt-3"></div>
+            <noscript>
+                <div id="pager" class="mt-3">
+                    <button type="button" onclick="location.href='?page=1' " {% if page == 1 %}disabled{% endif %}>
+                        &laquo;
+                        Primero
+                    </button>
+                    <button type="button" onclick="location.href='?page={{ page|add:-1 }}' "
+                            {% if page <= 1 %}disabled{% endif %}>&lsaquo; Ant
+                    </button>
+                    <span>Página {{ page }} de {{ total_pages }}</span>
+                    <button type="button" onclick="location.href='?page={{ page|add:1 }}' "
+                            {% if page >= total_pages %}disabled{% endif %}>Sig &rsaquo;
+                    </button>
+                    <button type="button" onclick="location.href='?page={{ total_pages }}' "
+                            {% if page >= total_pages %}disabled{% endif %}>Último &raquo;
+                    </button>
+                </div>
+            </noscript>
+        </section>
+    </main>
+
+    <!-- Modal (oculto por defecto; se muestra con .abierto) -->
+    <div id="modal" class="modal" aria-hidden="true" aria-labelledby="modalTitulo" role="dialog">
+        <div class="modal__dialog" role="document">
+            <div class="modal__header">
+                <span id="modalTitulo" class="modal__title">Usuario</span>
+                <button type="button" class="btn btn--ghost" id="btnCerrarX" aria-label="Cerrar">✕</button>
+            </div>
+
+            <form id="formUsuario" class="grid gap-4" novalidate>
+                <input type="hidden" id="inpId" name="id"/>
+
+                <fieldset class="border rounded p-3">
+                    <legend class="text-muted">Campos no modificables</legend>
+                    <div class="grid grid-2 gap-3">
+                        <div>Fecha de creación: <span id="spFecha" class="text-muted">—</span></div>
+                        <div>Nombre de Usuario: <span id="spNombre" class="text-muted">—</span></div>
+                        <div>Correo: <span id="spCorreo" class="text-muted">—</span></div>
+                        <div>ID: <span id="spId" class="text-muted">—</span></div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="border rounded p-3">
+                    <legend>Campos editables</legend>
+                    <div>
+                        <label for="inpSaldo">Saldo</label>
+                        <input type="number" id="inpSaldo" name="saldo" min="0" step="0.01"/>
+                    </div>
+                </fieldset>
+
+                <div class="modal__actions">
+                    <button type="button" class="btn" id="btnAceptar">Aceptar</button>
+                    <button type="button" class="btn btn--danger" id="btnBorrar">Borrar</button>
+                    <button type="button" class="btn btn--muted" id="btnCerrar">Cerrar</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+{% endblock %}
 
-<script>
-    const CSRF_TOKEN = "{{ csrf_token }}";
+{% block scripts %}
+    <script>
+        const CSRF_TOKEN = "{{ csrf_token }}";
 
-    // --- Buscar sin recargar (AJAX) ---
-    const formBuscar = document.getElementById('formBuscar');
-    formBuscar.addEventListener('submit', (e) => {
-        e.preventDefault();
-        buscar(1);
-    });
+        // --- Buscar sin recargar (AJAX) ---
+        const formBuscar = document.getElementById('formBuscar');
+        formBuscar.addEventListener('submit', (e) => {
+            e.preventDefault();
+            buscar(1);
+        });
 
-    function queryParamsFromForm() {
-        const fd = new FormData(formBuscar);
-        const q = new URLSearchParams();
-        for (const [k, v] of fd.entries()) {
-            if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
+        function queryParamsFromForm() {
+            const fd = new FormData(formBuscar);
+            const q = new URLSearchParams();
+            for (const [k, v] of fd.entries()) {
+                if (v != null && String(v).trim() !== '') q.set(k, String(v).trim());
+            }
+            return q;
         }
-        return q;
-    }
 
-    function buscar(page = 1) {
-        const q = queryParamsFromForm();
-        q.set('page', String(page));
-        fetch(`./api/listar/?${q.toString()}`)
-            .then(r => r.json())
-            .then(resp => {
-                if (!resp.ok) {
-                    alert('Error al listar');
-                    return;
-                }
-                renderTabla(resp.rows);
-                renderPaginador(resp.page, resp.total_pages);
-            })
-            .catch(() => alert('No se pudo obtener la lista'));
-    }
-
-    function renderTabla(rows) {
-        const tbody = document.getElementById('tblBody');
-        tbody.innerHTML = '';
-        if (!rows || rows.length === 0) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="4">Sin resultados</td>`;
-            tbody.appendChild(tr);
-            return;
+        function buscar(page = 1) {
+            const q = queryParamsFromForm();
+            q.set('page', String(page));
+            fetch(`./api/listar/?${q.toString()}`)
+                .then(r => r.json())
+                .then(resp => {
+                    if (!resp.ok) {
+                        alert('Error al listar');
+                        return;
+                    }
+                    renderTabla(resp.rows);
+                    renderPaginador(resp.page, resp.total_pages);
+                })
+                .catch(() => alert('No se pudo obtener la lista'));
         }
-        for (const p of rows) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+
+        function renderTabla(rows) {
+            const tbody = document.getElementById('tblBody');
+            tbody.innerHTML = '';
+            if (!rows || rows.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="4">Sin resultados</td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+            for (const p of rows) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
         <td>${p.id}</td>
         <td>${p.nombre}</td>
         <td>${(p.saldo || '')}</td>
         <td class="text-right"><button type="button" class="btn" onclick="abrirEditar(${p.id})">Editar</button></td>
       `;
-            tbody.appendChild(tr);
+                tbody.appendChild(tr);
+            }
         }
-    }
 
-    function renderPaginador(page, total) {
-        const pager = document.getElementById('pager');
-        const disPrim = page <= 1 ? 'disabled' : '';
-        const disAnt = page <= 1 ? 'disabled' : '';
-        const disSig = page >= total ? 'disabled' : '';
-        const disUlt = page >= total ? 'disabled' : '';
-        pager.innerHTML = `
+        function renderPaginador(page, total) {
+            const pager = document.getElementById('pager');
+            const disPrim = page <= 1 ? 'disabled' : '';
+            const disAnt = page <= 1 ? 'disabled' : '';
+            const disSig = page >= total ? 'disabled' : '';
+            const disUlt = page >= total ? 'disabled' : '';
+            pager.innerHTML = `
       <button type="button" onclick="irPagina(1)" ${disPrim}>&laquo; Primero</button>
       <button type="button" onclick="irPagina(${page - 1})" ${disAnt}>&lsaquo; Ant</button>
       <span>Página ${page} de ${total}</span>
       <button type="button" onclick="irPagina(${page + 1})" ${disSig}>Sig &rsaquo;</button>
       <button type="button" onclick="irPagina(${total})" ${disUlt}>Último &raquo;</button>
     `;
-    }
+        }
 
-    function irPagina(p) {
-        if (p < 1) p = 1;
-        buscar(p);
-    }
+        function irPagina(p) {
+            if (p < 1) p = 1;
+            buscar(p);
+        }
 
 
-    // ---------- MODAL ----------
-    const modal = document.getElementById('modal');
-    const btnCerrar = document.getElementById('btnCerrar');
-    const btnCerrarX = document.getElementById('btnCerrarX');
+        // ---------- MODAL ----------
+        const modal = document.getElementById('modal');
+        const btnCerrar = document.getElementById('btnCerrar');
+        const btnCerrarX = document.getElementById('btnCerrarX');
 
-    function abrirModal() {
-        modal.classList.add('abierto');
-        modal.setAttribute('aria-hidden', 'false');
-        setTimeout(() => document.getElementById('inpSaldo').focus(), 0);
-    }
+        function abrirModal() {
+            modal.classList.add('abierto');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => document.getElementById('inpSaldo').focus(), 0);
+        }
 
-    function cerrarModal() {
-        modal.classList.remove('abierto');
-        modal.setAttribute('aria-hidden', 'true');
-    }
+        function cerrarModal() {
+            modal.classList.remove('abierto');
+            modal.setAttribute('aria-hidden', 'true');
+        }
 
-    // Cerrar con botones / click fuera / Escape
-    btnCerrar.addEventListener('click', cerrarModal);
-    btnCerrarX.addEventListener('click', cerrarModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) cerrarModal();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
-    });
-
-    function abrirEditar(id) {
-        fetch(`./api/detalle/${id}/`)
-            .then(r => r.json())
-            .then(d => abrirModalConDatos(d));
-    }
-
-    function abrirModalConDatos(d) {
-        document.getElementById('modalTitulo').textContent = "Editar Usuario";
-        document.getElementById('inpId').value = d.id;
-        document.getElementById('spId').textContent = d.id ?? '—';
-        document.getElementById('spFecha').textContent = d.fecha?.slice(0, 19).replace('T', ' ') || '—';
-        document.getElementById('spCorreo').textContent = d.correo ?? '—';
-        document.getElementById('spNombre').textContent = d.nombre ?? '';
-        document.getElementById('inpSaldo').value = d.saldo ?? '';
-        abrirModal();
-    }
-
-    window.abrirEditar = abrirEditar; // expone para el onclick de la tabla
-
-    // Guardar / Borrar )
-    document.getElementById('btnAceptar').addEventListener('click', () => {
-        const payload = {
-            id: document.getElementById('inpId').value || null,
-            saldo: document.getElementById('inpSaldo').value,
-        };
-        fetch('./api/guardar/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN},
-            body: JSON.stringify(payload)
-        })
-            .then(r => r.json()).then(resp => {
-            if (resp.ok) {
-                alert('Guardado');
-                if (!payload.id) {
-                    abrirEditar(resp.id);
-                } else {
-                    cerrarModal();
-                }
-            } else {
-                alert('Error: ' + JSON.stringify(resp));
-            }
+        // Cerrar con botones / click fuera / Escape
+        btnCerrar.addEventListener('click', cerrarModal);
+        btnCerrarX.addEventListener('click', cerrarModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) cerrarModal();
         });
-    });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarModal();
+        });
 
-    document.getElementById('btnBorrar').addEventListener('click', () => {
-        const id = document.getElementById('inpId').value;
-        if (!id) return; // no hay crear aquí; mantenemos tu flujo
-        if (confirm('¿Eliminar este Usuario?')) {
-            fetch(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF_TOKEN}})
+        function abrirEditar(id) {
+            fetch(`./api/detalle/${id}/`)
+                .then(r => r.json())
+                .then(d => abrirModalConDatos(d));
+        }
+
+        function abrirModalConDatos(d) {
+            document.getElementById('modalTitulo').textContent = "Editar Usuario";
+            document.getElementById('inpId').value = d.id;
+            document.getElementById('spId').textContent = d.id ?? '—';
+            document.getElementById('spFecha').textContent = d.fecha?.slice(0, 19).replace('T', ' ') || '—';
+            document.getElementById('spCorreo').textContent = d.correo ?? '—';
+            document.getElementById('spNombre').textContent = d.nombre ?? '';
+            document.getElementById('inpSaldo').value = d.saldo ?? '';
+            abrirModal();
+        }
+
+        window.abrirEditar = abrirEditar; // expone para el onclick de la tabla
+
+        // Guardar / Borrar )
+        document.getElementById('btnAceptar').addEventListener('click', () => {
+            const payload = {
+                id: document.getElementById('inpId').value || null,
+                saldo: document.getElementById('inpSaldo').value,
+            };
+            fetch('./api/guardar/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN},
+                body: JSON.stringify(payload)
+            })
                 .then(r => r.json()).then(resp => {
                 if (resp.ok) {
-                    alert('Eliminado');
-                    cerrarModal();
-                    const u = new URL(window.location.href);
-                    const page = Number(new URLSearchParams(u.search).get('page') || '1');
-                    buscar(page);
+                    alert('Guardado');
+                    if (!payload.id) {
+                        abrirEditar(resp.id);
+                    } else {
+                        cerrarModal();
+                    }
+                } else {
+                    alert('Error: ' + JSON.stringify(resp));
                 }
             });
-        }
-    });
+        });
 
-    // Render inicial del paginador con valores del servidor
-    (function initPaginadorSSR() {
-        const page = Number('{{ page|default:1 }}');
-        const total = Number('{{ total_pages|default:1 }}');
-        renderPaginador(page || 1, total || 1);
-    })();
-</script>
-</body>
-</html>
+        document.getElementById('btnBorrar').addEventListener('click', () => {
+            const id = document.getElementById('inpId').value;
+            if (!id) return; // no hay crear aquí; mantenemos tu flujo
+            if (confirm('¿Eliminar este Usuario?')) {
+                fetch(`./api/eliminar/${id}/`, {method: 'POST', headers: {'X-CSRFToken': CSRF_TOKEN}})
+                    .then(r => r.json()).then(resp => {
+                    if (resp.ok) {
+                        alert('Eliminado');
+                        cerrarModal();
+                        const u = new URL(window.location.href);
+                        const page = Number(new URLSearchParams(u.search).get('page') || '1');
+                        buscar(page);
+                    }
+                });
+            }
+        });
+
+        // Render inicial del paginador con valores del servidor
+        (function initPaginadorSSR() {
+            const page = Number('{{ page|default:1 }}');
+            const total = Number('{{ total_pages|default:1 }}');
+            renderPaginador(page || 1, total || 1);
+        })();
+    </script>
+
+{% endblock %}

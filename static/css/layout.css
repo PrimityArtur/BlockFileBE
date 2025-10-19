@@ -1,12 +1,8 @@
 header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--gap-2);
-    padding: var(--gap-3) var(--gap-4);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
     position: sticky;
+    gap: var(--gap-2);
+    background: var(--color-bg2);
+    border-bottom: 1px solid var(--border);
     top: 0;
     z-index: 50;
 }
@@ -15,9 +11,11 @@ header h1 {
     margin: 0;
     font-weight: 700;
     letter-spacing: .2px;
+    color: var(--color-accent-600);
 }
 
 header nav {
+    margin-left: auto;
     display: flex;
     gap: var(--gap-2);
     flex-wrap: wrap;
@@ -27,6 +25,8 @@ header nav {
 /* Sección principal */
 main {
     padding: var(--gap-6) 0;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 
@@ -63,6 +63,6 @@ main {
     gap: var(--gap-2);
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-start;
-    margin-top: var(--gap-3);
+    justify-content: center;
+    margin-top: var(--gap-8);
 }

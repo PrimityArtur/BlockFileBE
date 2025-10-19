@@ -57,20 +57,7 @@ h3 {
     margin: 0 0 var(--gap-2);
 }
 
-
-/* Contenedor central opcional */
-.container {
-    width: min(1100px, 92%);
-    margin-inline: auto;
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
-
-
-/* Tarjeta base */
-.card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--gap-4);
-    box-shadow: var(--shadow-sm);
-}
-

@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}BlockFile{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
+</head>
+<body>
+
+<header>
+    <div class="container-nav">
+        <h1 class="brand-title">BlockFile</h1>
+        <nav>
+            <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
+            <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
+            <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
+            <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    {% block content %}
+    <!-- Contenido de pagina -->
+    {% endblock %}
+</main>
+
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

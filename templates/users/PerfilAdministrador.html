@@ -1,143 +1,124 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <title>Perfil Administrador</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+{% extends 'base/HeaderAdministrador.html' %}
 
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utilities.css' %}">
-</head>
-<body>
+{% block title %}Perfil{% endblock %}
 
-<header>
-    <h1>BlockFile</h1>
-    <nav>
-        <a class="btn btn--ghost" href="{% url 'users:perfil_admin' %}">Perfil</a>
-        <a class="btn btn--ghost" href="{% url 'gestorProductos:gestion' %}">Inventario</a>
-        <a class="btn btn--ghost" href="{% url 'gestorCategorias:gestion' %}">Categorías</a>
-        <a class="btn btn--ghost" href="{% url 'gestorUsuario:gestion' %}">Usuarios</a>
-    </nav>
-</header>
+{% block content %}
 
-<main>
-    <section class="container">
-        <div class="between flex wrap items-end mb-4">
-            <h1 class="mb-0">Perfil del Administrador</h1>
-        </div>
-
-        {% if errors %}
-            <div class="card p-3 mb-3">
-                <strong>Errores:</strong>
-                <pre class="mt-2">{{ errors }}</pre>
-            </div>
-        {% endif %}
-
-        {% if success %}
-            <div class="card p-3 mb-3">
-                <strong>{{ success }}</strong>
-            </div>
-        {% endif %}
-
-        <!-- Formulario de perfil -->
-        <form id="form-admin" method="post" action="" class="card p-4">
-            {% csrf_token %}
-
-            <div class="form-row">
-                <div>
-                    <label>ID</label>
-                    <input type="text" value="{{ request.session.usuario_id }}" disabled>
-                </div>
-
-                <div>
-                    <label for="inp-nombre">Nombre</label>
-                    <input id="inp-nombre" type="text" name="nombre" maxlength="10"
-                           value="{{ request.session.usuario_nombre }}" readonly required>
-                </div>
-
-                <div>
-                    <label for="inp-correo">Correo</label>
-                    <input id="inp-correo" type="email" name="correo" maxlength="50"
-                           value="{{ request.session.usuario_correo }}" readonly required>
-                </div>
-
-                <div>
-                    <label for="inp-contrasena">Contraseña</label>
-                    <input id="inp-contrasena" type="password" name="contrasena" minlength="4"
-                           value="{{ request.session.usuario_contrasena }}" readonly required>
-                </div>
+    <main>
+        <section class="container">
+            <div class="between flex wrap items-end mb-4">
+                <h1 class="mb-0">Perfil del Administrador</h1>
             </div>
 
-            <div class="modal__actions">
-                <button id="btn-editar" type="button" class="btn">Editar información</button>
-                <button id="btn-guardar" type="submit" class="btn hidden">Guardar</button>
-                <button id="btn-cancelar" type="button" class="btn btn--muted hidden">Cancelar</button>
-            </div>
-        </form>
+            {% if errors %}
+                <div class="card p-3 mb-3">
+                    <strong>Errores:</strong>
+                    <pre class="mt-2">{{ errors }}</pre>
+                </div>
+            {% endif %}
 
-        <!-- Logout -->
-        <form method="post" action="{% url 'users:logout' %}" class="mt-3">
-            {% csrf_token %}
-            <button type="submit" class="btn btn--danger">Cerrar sesión</button>
-        </form>
-    </section>
-</main>
+            {% if success %}
+                <div class="card p-3 mb-3">
+                    <strong>{{ success }}</strong>
+                </div>
+            {% endif %}
 
-<script>
-    (() => {
-        const $ = id => document.getElementById(id);
+            <!-- Formulario de perfil -->
+            <form id="form-admin" method="post" action="" class="card p-4">
+                {% csrf_token %}
 
-        const form = $('form-admin');
-        const nombre = $('inp-nombre');
-        const correo = $('inp-correo');
-        const pass = $('inp-contrasena');
+                <div class="form-row">
+                    <div>
+                        <label>ID</label>
+                        <input type="text" value="{{ request.session.usuario_id }}" disabled>
+                    </div>
 
-        const btnEdit = $('btn-editar');
-        const btnSave = $('btn-guardar');
-        const btnCancel = $('btn-cancelar');
+                    <div>
+                        <label for="inp-nombre">Nombre</label>
+                        <input id="inp-nombre" type="text" name="nombre" maxlength="10"
+                               value="{{ request.session.usuario_nombre }}" readonly required>
+                    </div>
 
-        const original = {
-            nombre: nombre.value,
-            correo: correo.value,
-            pass: pass.value
-        };
+                    <div>
+                        <label for="inp-correo">Correo</label>
+                        <input id="inp-correo" type="email" name="correo" maxlength="50"
+                               value="{{ request.session.usuario_correo }}" readonly required>
+                    </div>
 
-        // helpers visuales (usa la clase .hidden en lugar de style inline)
-        const show = el => el.classList.remove('hidden');
-        const hide = el => el.classList.add('hidden');
+                    <div>
+                        <label for="inp-contrasena">Contraseña</label>
+                        <input id="inp-contrasena" type="password" name="contrasena" minlength="4"
+                               value="{{ request.session.usuario_contrasena }}" readonly required>
+                    </div>
+                </div>
 
-        function setMode(edit) {
-            [nombre, correo, pass].forEach(i => i.readOnly = !edit);
-            if (edit) {
-                hide(btnEdit);
-                show(btnSave);
-                show(btnCancel);
-            } else {
-                show(btnEdit);
-                hide(btnSave);
-                hide(btnCancel);
+                <div class="modal__actions">
+                    <button id="btn-editar" type="button" class="btn">Editar información</button>
+                    <button id="btn-guardar" type="submit" class="btn hidden">Guardar</button>
+                    <button id="btn-cancelar" type="button" class="btn btn--muted hidden">Cancelar</button>
+                </div>
+            </form>
+
+            <!-- Logout -->
+            <form method="post" action="{% url 'users:logout' %}" class="mt-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn--danger">Cerrar sesión</button>
+            </form>
+        </section>
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (() => {
+            const $ = id => document.getElementById(id);
+
+            const form = $('form-admin');
+            const nombre = $('inp-nombre');
+            const correo = $('inp-correo');
+            const pass = $('inp-contrasena');
+
+            const btnEdit = $('btn-editar');
+            const btnSave = $('btn-guardar');
+            const btnCancel = $('btn-cancelar');
+
+            const original = {
+                nombre: nombre.value,
+                correo: correo.value,
+                pass: pass.value
+            };
+
+            // helpers visuales (usa la clase .hidden en lugar de style inline)
+            const show = el => el.classList.remove('hidden');
+            const hide = el => el.classList.add('hidden');
+
+            function setMode(edit) {
+                [nombre, correo, pass].forEach(i => i.readOnly = !edit);
+                if (edit) {
+                    hide(btnEdit);
+                    show(btnSave);
+                    show(btnCancel);
+                } else {
+                    show(btnEdit);
+                    hide(btnSave);
+                    hide(btnCancel);
+                }
             }
-        }
 
-        btnEdit.addEventListener('click', () => {
-            setMode(true);
-            nombre.focus();
-        });
+            btnEdit.addEventListener('click', () => {
+                setMode(true);
+                nombre.focus();
+            });
 
-        btnCancel.addEventListener('click', () => {
-            nombre.value = original.nombre;
-            correo.value = original.correo;
-            pass.value = original.pass;
-            setMode(false);
-        });
+            btnCancel.addEventListener('click', () => {
+                nombre.value = original.nombre;
+                correo.value = original.correo;
+                pass.value = original.pass;
+                setMode(false);
+            });
 
-        // al enviar, volvemos a vista lectura; el backend valida y responde
-        form.addEventListener('submit', () => setMode(false));
-    })();
-</script>
-</body>
-</html>
+            // al enviar, volvemos a vista lectura; el backend valida y responde
+            form.addEventListener('submit', () => setMode(false));
+        })();
+    </script>
+{% endblock %}

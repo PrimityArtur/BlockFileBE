@@ -137,7 +137,11 @@ def existe_compra(producto_id: int, usuario_id: int) -> bool:
         return cur.fetchone() is not None
 
 def insert_compra(producto_id: int, usuario_id: int) -> None:
-    sql = 'INSERT INTO "COMPRA_PRODUCTO"(id_producto, id_usuario) VALUES (%s, %s) ON CONFLICT (id_producto, id_usuario) DO NOTHING'
+    sql = '''
+    INSERT INTO "COMPRA_PRODUCTO"(id_producto, id_usuario, fecha)
+    VALUES (%s, %s, NOW())
+    ON CONFLICT (id_producto, id_usuario) DO NOTHING
+    '''
     with connection.cursor() as cur:
         cur.execute(sql, [producto_id, usuario_id])
 

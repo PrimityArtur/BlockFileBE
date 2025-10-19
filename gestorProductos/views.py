@@ -124,8 +124,9 @@ def api_imagen_producto(request, id_imagen: int):
         img = ImagenProducto.objects.get(pk=id_imagen)
     except ImagenProducto.DoesNotExist:
         return HttpResponseBadRequest("no existe")
-    mime_type = magic.from_buffer(img.archivo, mime=True) or "application/octet-stream"
-    return HttpResponse(img.archivo, content_type=mime_type)
+    blob = bytes(img.archivo)
+    mime_type = magic.from_buffer(blob, mime=True) or "application/octet-stream"
+    return HttpResponse(blob, content_type=mime_type)
 
 
 @require_http_methods(["POST"])

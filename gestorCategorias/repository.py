@@ -109,8 +109,8 @@ def crear_actualizar_categoria(
         else:
             cur.execute(
                 '''
-                INSERT INTO "CATEGORIA"(nombre, descripcion)
-                VALUES (%s, %s)
+                INSERT INTO "CATEGORIA"(nombre, descripcion, fecha)
+                VALUES (%s, %s, now())
                 RETURNING id_categoria;
                 ''',
                 [nombre, descripcion],

@@ -8,7 +8,6 @@ class DomainError(Exception):
 
 
 def autenticar_usuario(*, nombre: str, contrasena: str) -> dict:
-    # Verifica credenciales y determina el tipo de usuario.
 
     usuario = repo.get_usuario(nombre=nombre)
     if not usuario or usuario.contrasena != contrasena:

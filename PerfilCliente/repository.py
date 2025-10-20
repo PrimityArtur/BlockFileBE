@@ -61,10 +61,10 @@ def existe_correo(correo: str, excluir_id: int) -> bool:
 
 def actualizar_usuario(usuario_id: int, nombre_usuario: str, correo: str, contrasena: Optional[str]) -> None:
     if contrasena:
-        sql = 'UPDATE "USUARIO" SET nombre_usuario=%s, correo=%s, contrasena=%s WHERE id_usuario=%s'
+        sql = 'UPDATE "USUARIO" SET nombre_usuario = %s, correo = %s, contrasena = %s WHERE id_usuario = %s'
         params = [nombre_usuario, correo, contrasena, usuario_id]
     else:
-        sql = 'UPDATE "USUARIO" SET nombre_usuario=%s, correo=%s WHERE id_usuario=%s'
+        sql = 'UPDATE "USUARIO" SET nombre_usuario = %s, correo = %s WHERE id_usuario = %s'
         params = [nombre_usuario, correo, usuario_id]
     with connection.cursor() as cur:
         cur.execute(sql, params)

@@ -124,12 +124,12 @@
                         </div>
                         <div>
                             <label for="inpVersion">Versión</label>
-                            <input type="text" id="inpVersion" name="version" maxlength="50"/>
+                            <input type="text" id="inpVersion" name="version" maxlength="50" required/>
                         </div>
                         <div class="grid-2" style="grid-column: 1 / -1;">
                             <div>
                                 <label for="inpPrecio">Precio</label>
-                                <input type="number" id="inpPrecio" name="precio" min="0" step="0.01"/>
+                                <input type="number" id="inpPrecio" name="precio" min="0" step="0.01" required/>
                             </div>
                             <div>
                                 <label for="inpActivo">Activo</label><br>
@@ -146,7 +146,7 @@
                         </div>
                         <div style="grid-column: 1 / -1;">
                             <label for="inpDescripcion">Descripción</label>
-                            <textarea id="inpDescripcion" name="descripcion" rows="4"></textarea>
+                            <textarea id="inpDescripcion" name="descripcion" rows="4" required></textarea>
                         </div>
                     </div>
                 </fieldset>

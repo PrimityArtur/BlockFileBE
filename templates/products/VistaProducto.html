@@ -3,6 +3,47 @@
 {% block title %}{{ p.nombre }}{% endblock %}
 
 {% block content %}
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "@id": "{{ BASE_URL }}{% url 'vistaProducto:detalle_producto' p.id %}",
+    "schema:name": "{{ p.nombre|escape }}",
+    "schema:description": "{{ p.descripcion|escape }}",
+    "schema:sku": "{{ p.id }}",
+    {% if p.imagen_ids %}
+    "schema:image": [
+    {% for img_id in p.imagen_ids %}
+    "{{ BASE_URL }}{% url 'vistaProducto:api_imagen' img_id %}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ],
+    {% endif %}
+    "schema:author": {
+        "@type": "Person",
+        "@id": "{{ BASE_URL }}/autor/{{ p.autor|default:'autor-desconocido'|slugify }}",
+        "schema:name": "{{ p.autor|default:'-'|escape }}",
+        "schema:url": "{{ BASE_URL }}/autor/{{ p.autor|default:'autor-desconocido'|slugify }}"
+    },
+    "schema:category": {
+        "@type": "CategoryCode",
+        "@id": "{{ BASE_URL }}/categoria/{{ p.categoria|default:'sin-categoria'|slugify }}",
+        "schema:name": "{{ p.categoria|default:'-'|escape }}",
+        "schema:url": "{{ BASE_URL }}/categoria/{{ p.categoria|default:'sin-categoria'|slugify }}"
+    },
+    {% if p.fecha_publicacion %}
+    "schema:datePublished": "{{ p.fecha_publicacion|date:'Y-m-d' }}",
+    {% endif %}
+    "schema:offers": {
+        "@type": "Offer",
+        "schema:price": "{{ p.precio|floatformat:2 }}",
+        "schema:priceCurrency": "PEN",
+        "schema:availability": "https://schema.org/InStock"
+    },
+
+    {% endif %}
+    "schema:url": "{{ BASE_URL }}{% url 'vistaProducto:detalle_producto' p.id %}"
+    }
+    </script>
     <main>
         <section class="container">
 

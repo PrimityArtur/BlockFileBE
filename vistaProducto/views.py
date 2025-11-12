@@ -56,10 +56,6 @@ def detalle_producto_view(request, producto_id: int):
 
 @require_http_methods(["GET"])
 def producto_ttl_view(request, producto_id: int):
-    """
-    Respuesta explícita .ttl para el producto.
-    """
-    # No usamos cliente_id aquí
     detalle = repo.obtener_detalle_producto(producto_id, cliente_id=None)
     if not detalle:
         raise Http404("Producto no encontrado")
@@ -68,6 +64,22 @@ def producto_ttl_view(request, producto_id: int):
     turtle = _producto_turtle(detalle, len(comentarios), request)
     return HttpResponse(turtle, content_type="text/turtle; charset=utf-8")
 
+@require_http_methods(["GET"])
+def download_producto_ttl_view(request, producto_id: int):
+    detalle = repo.obtener_detalle_producto(producto_id, cliente_id=None)
+    if not detalle:
+        raise Http404("Producto no encontrado")
+
+    comentarios = repo.listar_comentarios_producto(producto_id)
+    turtle = _producto_turtle(detalle, len(comentarios), request)
+
+    # Crear archivo
+    filename = f"{detalle.get("nombre")}-{producto_id}.ttl"
+
+    # Responder con descarga forzada
+    response = HttpResponse(turtle, content_type="text/turtle; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 @require_http_methods(["GET"])
 def api_imagen_producto(request, id_imagen: int):

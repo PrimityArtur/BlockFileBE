@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 app_name = 'vistaProducto'
@@ -6,6 +7,7 @@ app_name = 'vistaProducto'
 urlpatterns = [
     path("producto/<int:producto_id>/", views.detalle_producto_view, name="detalle_producto"),
     path("producto/<int:producto_id>.ttl", views.producto_ttl_view, name="producto_ttl"),
+    path("producto/<int:producto_id>/rdf/download/", views.download_producto_ttl_view, name="download_producto_ttl"),
 
     path("producto/api/imagen/<int:id_imagen>/", views.api_imagen_producto, name="api_imagen"),
 

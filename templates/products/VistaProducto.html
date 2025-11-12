@@ -4,23 +4,23 @@
 
 {% block content %}
     <script type="application/ld+json">
-    {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "@id": "{{ BASE_URL }}{% url 'vistaProducto:detalle_producto' p.id %}",
+        {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "@id": "{{ BASE_URL }}{% url 'vistaProducto:detalle_producto' p.id %}",
     "schema:name": "{{ p.nombre|escape }}",
     "schema:description": "{{ p.descripcion|escape }}",
     "schema:sku": "{{ p.id }}",
-    {% if p.imagen_ids %}
-    "schema:image": [
-    {% for img_id in p.imagen_ids %}
-    "{{ BASE_URL }}{% url 'vistaProducto:api_imagen' img_id %}"{% if not forloop.last %},{% endif %}
+        {% if p.imagen_ids %}
+            "schema:image": [
+            {% for img_id in p.imagen_ids %}
+                "{{ BASE_URL }}{% url 'vistaProducto:api_imagen' img_id %}"{% if not forloop.last %},{% endif %}
     {% endfor %}
-    ],
-    {% endif %}
-    "schema:author": {
-        "@type": "Person",
-        "@id": "{{ BASE_URL }}/autor/{{ p.autor|default:'autor-desconocido'|slugify }}",
+            ],
+        {% endif %}
+        "schema:author": {
+            "@type": "Person",
+            "@id": "{{ BASE_URL }}/autor/{{ p.autor|default:'autor-desconocido'|slugify }}",
         "schema:name": "{{ p.autor|default:'-'|escape }}",
         "schema:url": "{{ BASE_URL }}/autor/{{ p.autor|default:'autor-desconocido'|slugify }}"
     },
@@ -30,12 +30,12 @@
         "schema:name": "{{ p.categoria|default:'-'|escape }}",
         "schema:url": "{{ BASE_URL }}/categoria/{{ p.categoria|default:'sin-categoria'|slugify }}"
     },
-    {% if p.fecha_publicacion %}
-    "schema:datePublished": "{{ p.fecha_publicacion|date:'Y-m-d' }}",
-    {% endif %}
-    "schema:offers": {
-        "@type": "Offer",
-        "schema:price": "{{ p.precio|floatformat:2 }}",
+        {% if p.fecha_publicacion %}
+            "schema:datePublished": "{{ p.fecha_publicacion|date:'Y-m-d' }}",
+        {% endif %}
+        "schema:offers": {
+            "@type": "Offer",
+            "schema:price": "{{ p.precio|floatformat:2 }}",
         "schema:priceCurrency": "PEN",
         "schema:availability": "https://schema.org/InStock"
     },
@@ -115,6 +115,15 @@
                         <p><strong>Versión:</strong> {{ p.version|default:"-" }}</p>
                         <p><strong>Categoría:</strong> {{ p.categoria|default:"-" }}</p>
                         <p><strong>Fecha:</strong> {{ p.fecha_publicacion|date:"Y-m-d H:i" }}</p>
+                        <div class="mt-3">
+                            <a
+                                    href="{% url 'vistaProducto:download_producto_ttl' p.id %}"
+                                    class="btn btn--muted w-100 sm:w-auto"
+                                    title="Descargar representación RDF en formato Turtle"
+                            >
+                                Descargar RDF (.ttl)
+                            </a>
+                        </div>
                     </div>
 
                     {% if mostrar_acciones %}

@@ -21,7 +21,11 @@
             <a class="btn btn--ghost" href="{% url 'catalogoProductos:catalogo' %}">Inicio</a>
             <a class="btn btn--ghost" href="{% url 'Rankings:rankings' %}">Ranking</a>
             <a class="btn btn--ghost" href="{% url 'PerfilCliente:PerfilCliente' %}">Perfil</a>
-            <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión</a>
+            {% if request.session.usuario_id %}
+            <a class="btn btn--ghost" href="{% url 'users:logout' %}">Cerrar Sesión </a>
+            {% else %}
+            <a class="btn btn--ghost" href="{% url 'users:logout' %}">Iniciar Sesión </a>
+            {% endif %}
         </nav>
     </div>
 </header>

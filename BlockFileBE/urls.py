@@ -28,4 +28,8 @@ urlpatterns = [
 
     path('rank/', include('Rankings.urls', namespace='Rankings')),
     path('perfil-cliente/', include('PerfilCliente.urls', namespace='PerfilCliente')),
+
+    #APISMOVIL
+    path('apimovil/', include('users.api_urls', namespace='apimovil')),
+
 ]

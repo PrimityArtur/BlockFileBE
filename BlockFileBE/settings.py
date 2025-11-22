@@ -31,7 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'web-production-a9bbf.up.railway.app',
+    'blockfile.up.railway.app',
     'http://*'
 ]
 
@@ -170,5 +170,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = [
     'HTTP://*',
-    'https://web-production-a9bbf.up.railway.app',
+    'https://blockfile.up.railway.app',
 ]

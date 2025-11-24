@@ -6,7 +6,7 @@ from core.models import ImagenProducto
 from . import serializer as serial
 
 # Para móvil queremos 10 productos por página
-MOBILE_PER_PAGE = 10
+MOBILE_PER_PAGE = 6
 
 
 @require_http_methods(["GET"])

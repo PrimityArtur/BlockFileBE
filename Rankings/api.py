@@ -3,7 +3,7 @@ from django.http import JsonResponse
 
 from . import repository as repo
 
-MOBILE_PER_PAGE = 6  # igual que catalogoProductos/api.py
+MOBILE_PER_PAGE = 6
 
 
 @require_http_methods(["GET"])

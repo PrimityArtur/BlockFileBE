@@ -19,11 +19,11 @@ def api_detalle_producto(request, producto_id: int):
       -> JSON con detalle del producto + comentarios
     """
     # si hay usuario logueado, obtén su id para saldo_cliente y mostrar_acciones
-    cliente_id = None
-    user = getattr(request, "user", None)
-    if getattr(user, "is_authenticated", False):
-        # adapta si tu modelo se llama diferente
-        cliente_id = getattr(user, "id_usuario", None)
+    cliente_id = request.session.get("usuario_id")
+    # user = getattr(request, "user", None)
+    # if getattr(user, "is_authenticated", False):
+    #     # adapta si tu modelo se llama diferente
+    #     cliente_id = getattr(user, "id_usuario", None)
 
     detalle = repo.obtener_detalle_producto(producto_id, cliente_id=cliente_id)
     if not detalle:
@@ -71,7 +71,8 @@ def api_detalle_producto(request, producto_id: int):
                 else None
             ),
             "imagen_urls": imagen_urls,
-            "mostrar_acciones": bool(detalle.get("mostrar_acciones", False)),
+            # "mostrar_acciones": bool(detalle.get("mostrar_acciones", False)),
+            "mostrar_acciones": bool(detalle.get("cliente_compro", False)),
             "url_ttl": url_descarga_ttl,
             "url_descargar": url_descargar_producto,
         },

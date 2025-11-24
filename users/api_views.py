@@ -115,8 +115,21 @@ class LoginMovilView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginMovilSerializer(data=request.data)
         if serializer.is_valid():
+            # Recuperar usuario y cliente validados
+            usuario = serializer.validated_data["usuario"]
+            cliente = serializer.validated_data["cliente"]
+
+            # === GUARDAR EN SESIÓN IGUAL QUE EN LA WEB ===
+            request.session["usuario_id"] = usuario.id_usuario
+            request.session["usuario_tipo"] = "cliente"
+            request.session["usuario_nombre"] = usuario.nombre_usuario
+            request.session["usuario_correo"] = usuario.correo
+            request.session["usuario_contrasena"] = usuario.contrasena
+
+            # Representación JSON (igual que antes)
             data = serializer.to_representation(serializer.validated_data)
             return Response(data, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

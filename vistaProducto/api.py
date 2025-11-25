@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from decimal import Decimal
 
 import magic
@@ -14,18 +15,16 @@ from . import services as serv
 
 
 def _build_abs(request, relative_url: str) -> str:
-    """
-    Convierte una URL relativa (ej. /vista/imagen/1/) en absoluta
-    para que el móvil tenga la URL completa.
-    """
     url = request.build_absolute_uri(relative_url)
 
-    # Si estás en Railway y viene http://, forzamos https://
     if url.startswith("http://") and "railway.app" in url:
         url = "https://" + url[len("http://") :]
-
-    # Si quieres, puedes añadir más lógica (ej. blockfile.up.railway.app)
     return url
+
+def _fmt_dt(dt: datetime | None) -> str | None:
+    if dt is None:
+        return None
+    return dt.strftime("%Y-%m-%d %H:%M")
 
 @require_http_methods(["GET"])
 def api_detalle_producto(request, producto_id: int):
@@ -77,11 +76,7 @@ def api_detalle_producto(request, producto_id: int):
             "autor": detalle.get("autor") or "-",
             "version": detalle.get("version") or "-",
             "categoria": detalle.get("categoria") or "-",
-            "fecha_publicacion": (
-                detalle.get("fecha_publicacion").isoformat()
-                if detalle.get("fecha_publicacion") is not None
-                else None
-            ),
+            "fecha_publicacion": _fmt_dt(detalle.get("fecha_publicacion")),
             "imagen_urls": imagen_urls,
             # "mostrar_acciones": bool(detalle.get("mostrar_acciones", False)),
             "mostrar_acciones": bool(detalle.get("cliente_compro", False)),
@@ -92,7 +87,7 @@ def api_detalle_producto(request, producto_id: int):
             {
                 "cliente": c.get("cliente"),
                 "calificacion": c.get("calificacion") or 0,
-                "fecha": c.get("fecha").isoformat() if c.get("fecha") else None,
+                "fecha": _fmt_dt(c.get("fecha")),
                 "descripcion": c.get("descripcion"),
             }
             for c in comentarios

@@ -16,4 +16,8 @@ urlpatterns = [
         api.comentar_producto_movil_view,
         name="comentar_producto_movil",
     ),
+
+    path("<int:producto_id>/calificar/",
+         api.calificar_producto_movil_view,
+         name="calificar_producto_movil"),
 ]

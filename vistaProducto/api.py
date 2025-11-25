@@ -171,3 +171,47 @@ def comentar_producto_movil_view(request, producto_id: int):
         },
         status=201,
     )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def calificar_producto_movil_view(request, producto_id: int):
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return HttpResponseForbidden("Debe iniciar sesión para calificar este producto.")
+
+    if not repo.existe_compra(producto_id, usuario_id):
+        return HttpResponseForbidden("Solo puede calificar productos que ha comprado.")
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "message": "JSON inválido."}, status=400)
+
+    try:
+        calificacion = int(payload.get("calificacion"))
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"ok": False, "message": "La calificación debe ser un número entero."},
+            status=400,
+        )
+
+    if calificacion < 1 or calificacion > 5:
+        return JsonResponse(
+            {"ok": False, "message": "La calificación debe estar entre 1 y 5."},
+            status=400,
+        )
+
+    # Guardar/actualizar calificación
+    repo.calificar_producto(producto_id, usuario_id, calificacion)
+
+    # Opcional: devolver nuevo promedio
+    detalle = repo.obtener_detalle_producto(producto_id, usuario_id)
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "Calificación registrada correctamente.",
+            "calificacion_promedio": detalle.get("calificacion_promedio"),
+        },
+        status=201,
+    )

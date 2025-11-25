@@ -64,7 +64,8 @@ class AdminProductoDetalleMovilView(APIView):
 
         # Añadir URL absoluta para cada imagen
         imagenes = data.get("imagenes", [])
-        base_url = request.build_absolute_uri("/")[:-1]  # sin la última '/'
+        base_url = request.build_absolute_uri("/")
+        base_url = base_url.replace("http://", "https://")[:-1]
         for img in imagenes:
             img_id = img["id"]
             img["url"] = f"{base_url}/apimovil/admin/productos/imagenes/archivo/{img_id}/"

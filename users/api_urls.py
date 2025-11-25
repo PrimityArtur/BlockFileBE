@@ -7,6 +7,7 @@ urlpatterns = [
     path("login/", api.LoginMovilView.as_view(), name="login"),
     path("register/", api.RegisterMovilView.as_view(), name="register"),
 
+    path("admin/perfil/", api.AdminProfileMovilView.as_view(), name="api_admin_perfil"),
 
 
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path("rankings/", include("Rankings.api_urls")),
     path("productos/", include("vistaProducto.api_urls")),
     path("perfil/", include("PerfilCliente.api_urls")),
+
 
 
 ]

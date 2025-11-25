@@ -243,6 +243,7 @@ class AdminProfileMovilView(APIView):
 
         data = ser.validated_data
         usuario_id = data["id_usuario"]
+        print(usuario_id)
         try:
             usuario_actualizado = serv.actualizar_datos_administrador(
                 usuario_id=usuario_id,

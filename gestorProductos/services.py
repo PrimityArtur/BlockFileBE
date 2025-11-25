@@ -52,6 +52,8 @@ def eliminar_producto(*, id_producto:int) -> None:
 def subir_archivo_producto_srv(id_producto: int, contenido: bytes) -> None:
     repo.actualizar_archivo_producto(id_producto, contenido)
 
+def actualizar_archivo_producto(*, id_producto: int, contenido: bytes) -> None:
+    repo.actualizar_archivo_producto(id_producto=id_producto, archivo_bytes=contenido)
 
 def descargar_producto(producto_id: int) -> Tuple[str, bytes, str]:
     data = repo.archivo_producto(producto_id)

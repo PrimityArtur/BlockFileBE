@@ -1,9 +1,15 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework import permissions, status
 
 from .serializer import ValidarProductoSerializer, DetalleProductoEntradaSerializer, GuardarProductoSerializer
+from . import services as serv
+from .serializer import (
+    ImagenEntradaSerializer,
+    ReordenarImagenSerializer,
+    BorrarImagenSerializer,
+)
 from core.utils import PER_PAGE
 
 
@@ -62,3 +68,96 @@ class AdminProductoGuardarMovilView(APIView):
         ser.is_valid(raise_exception=True)
         result = ser.save()   # {"id": pid}
         return Response({"ok": True, "id": result["id"]})
+
+
+
+class AdminProductoArchivoMovilView(APIView):
+    """
+    POST /apimovil/admin/productos/archivo/
+    Campos (multipart/form-data):
+      - id_producto
+      - archivo (file)
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        pid = request.data.get("id_producto")
+        archivo = request.FILES.get("archivo")
+
+        if not pid or not archivo:
+            return Response(
+                {"detail": "id_producto y archivo son requeridos"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            pid_int = int(pid)
+        except ValueError:
+            return Response(
+                {"detail": "id_producto inválido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        contenido = archivo.read()
+        serv.actualizar_archivo_producto(id_producto=pid_int, contenido=contenido)
+        return Response({"ok": True})
+
+
+class AdminProductoImagenAgregarMovilView(APIView):
+    """
+    POST /apimovil/admin/productos/imagenes/agregar/
+    Campos (multipart/form-data):
+      - id_producto
+      - orden (opcional)
+      - archivo (file)
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        data = {
+            "id_producto": request.data.get("id_producto"),
+            "orden": request.data.get("orden"),
+        }
+        ser = ImagenEntradaSerializer(data=data)
+        ser.is_valid(raise_exception=True)
+
+        archivo = request.FILES.get("archivo")
+        if not archivo:
+            return Response(
+                {"detail": "archivo es requerido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        img_id = ser.agregar(contenido=archivo.read())
+        return Response({"ok": True, "id_imagen": img_id})
+
+
+class AdminProductoImagenReordenarMovilView(APIView):
+    """
+    POST /apimovil/admin/productos/imagenes/reordenar/
+    Body JSON:
+      - id_imagen
+      - orden
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        ser = ReordenarImagenSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        ser.aplicar()
+        return Response({"ok": True})
+
+
+class AdminProductoImagenBorrarMovilView(APIView):
+    """
+    POST /apimovil/admin/productos/imagenes/borrar/
+    Body JSON:
+      - id_imagen
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        ser = BorrarImagenSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        ser.aplicar()
+        return Response({"ok": True})

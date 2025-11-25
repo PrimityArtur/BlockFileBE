@@ -10,4 +10,10 @@ urlpatterns = [
 
     # /apimovil/admin/productos/guardar/
     path("guardar/", api.AdminProductoGuardarMovilView.as_view(), name="admin_productos_guardar"),
+
+
+    path("archivo/", api.AdminProductoArchivoMovilView.as_view(), name="admin_productos_archivo"),
+    path("imagenes/agregar/", api.AdminProductoImagenAgregarMovilView.as_view(), name="admin_productos_imagen_agregar"),
+    path("imagenes/reordenar/", api.AdminProductoImagenReordenarMovilView.as_view(), name="admin_productos_imagen_reordenar"),
+    path("imagenes/borrar/", api.AdminProductoImagenBorrarMovilView.as_view(), name="admin_productos_imagen_borrar"),
 ]

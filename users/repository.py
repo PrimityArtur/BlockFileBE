@@ -14,9 +14,12 @@ def get_usuario(
         correo: Optional[str] = None
 ) -> Optional[Usuario]:
     where, params = [], []
-    if id:      where += ['id_usuario=%s'];       params += [id]
-    if nombre:  where += ['nombre_usuario=%s'];   params += [nombre]
-    if correo:  where += ['correo=%s']; params += [correo]
+    if id is not None:      where += ['id_usuario=%s'];       params += [id]
+    if nombre is not None:  where += ['nombre_usuario=%s'];   params += [nombre]
+    if correo is not None:  where += ['correo=%s']; params += [correo]
+
+    if not where:
+        return None
 
     sql = f'SELECT id_usuario, correo, nombre_usuario, contrasena FROM "USUARIO" {"WHERE " + " AND ".join(where) if where else ""} LIMIT 1;'
     with connection.cursor() as cur:

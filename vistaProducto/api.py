@@ -1,12 +1,14 @@
 import json
 from decimal import Decimal
 
+import magic
 from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
+from core.models import ImagenProducto
 from . import repository as repo
 from . import services as serv
 
@@ -18,6 +20,17 @@ def _build_abs(request, relative_url: str) -> str:
     """
     return request.build_absolute_uri(relative_url)
 
+@require_http_methods(["GET"])
+def api_imagen_producto_movil(request, id_imagen: int):
+    try:
+        img = ImagenProducto.objects.only("archivo").get(pk=id_imagen)
+    except ImagenProducto.DoesNotExist:
+        raise Http404("Imagen no encontrada")
+
+    data = bytes(img.archivo)
+    mime = magic.Magic(mime=True)
+    content_type = mime.from_buffer(data) or "application/octet-stream"
+    return HttpResponse(data, content_type=content_type)
 
 @require_http_methods(["GET"])
 def api_detalle_producto(request, producto_id: int):
@@ -37,7 +50,7 @@ def api_detalle_producto(request, producto_id: int):
     # detalle es típicamente un dict; ajusta claves según tu repo
     imagen_urls = []
     for img_id in detalle.get("imagen_ids") or []:
-        rel = reverse(" catalogo_movil:imagen", args=[img_id])
+        rel = reverse("vistaProducto:api_imagen", args=[img_id])
         imagen_urls.append(_build_abs(request, rel))
 
     # URLs de descarga

@@ -16,4 +16,10 @@ urlpatterns = [
     path("imagenes/agregar/", api.AdminProductoImagenAgregarMovilView.as_view(), name="admin_productos_imagen_agregar"),
     path("imagenes/reordenar/", api.AdminProductoImagenReordenarMovilView.as_view(), name="admin_productos_imagen_reordenar"),
     path("imagenes/borrar/", api.AdminProductoImagenBorrarMovilView.as_view(), name="admin_productos_imagen_borrar"),
+
+    path(
+        "imagenes/archivo/<int:pk>/",
+        api.AdminProductoImagenArchivoMovilView.as_view(),
+        name="admin_productos_imagen_archivo",
+    ),
 ]

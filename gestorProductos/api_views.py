@@ -1,4 +1,5 @@
-from django.http import Http404
+from django.db import connection
+from django.http import Http404, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
@@ -49,6 +50,9 @@ class AdminProductosListMovilView(APIView):
 
 
 class AdminProductoDetalleMovilView(APIView):
+    """
+    GET /apimovil/admin/productos/detalle/<id>/
+    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk: int, *args, **kwargs):
@@ -57,6 +61,14 @@ class AdminProductoDetalleMovilView(APIView):
         data = ser.obtener()
         if not data:
             raise Http404("Producto no encontrado")
+
+        # Añadir URL absoluta para cada imagen
+        imagenes = data.get("imagenes", [])
+        base_url = request.build_absolute_uri("/")[:-1]  # sin la última '/'
+        for img in imagenes:
+            img_id = img["id"]
+            img["url"] = f"{base_url}/apimovil/admin/productos/imagenes/archivo/{img_id}/"
+
         return Response(data)
 
 
@@ -161,3 +173,32 @@ class AdminProductoImagenBorrarMovilView(APIView):
         ser.is_valid(raise_exception=True)
         ser.aplicar()
         return Response({"ok": True})
+
+
+
+
+
+class AdminProductoImagenArchivoMovilView(APIView):
+    """
+    GET /apimovil/admin/productos/imagenes/archivo/<id_imagen>/
+    Devuelve el archivo binario de la imagen.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk: int, *args, **kwargs):
+        sql = '''
+            SELECT archivo
+            FROM "IMAGEN_PRODUCTO"
+            WHERE id_imagen_producto = %s
+            LIMIT 1;
+        '''
+        with connection.cursor() as cur:
+            cur.execute(sql, [pk])
+            row = cur.fetchone()
+
+        if not row or not row[0]:
+            raise Http404("Imagen no encontrada")
+
+        blob = bytes(row[0])
+        # Si en tu BD no guardas el mime, usa un genérico; Coil lo maneja bien
+        return HttpResponse(blob, content_type="image/*")

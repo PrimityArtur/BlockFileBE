@@ -1,8 +1,10 @@
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
 from . import repository as repo
+from . import services as serv
+
 
 def _build_abs(request, relative_url: str) -> str:
     """
@@ -87,3 +89,33 @@ def api_detalle_producto(request, producto_id: int):
         ],
     }
     return JsonResponse(data, status=200)
+
+
+@require_http_methods(["GET"])
+def descargar_producto_movil_view(request, producto_id: int):
+    """
+    GET /apimovil/productos/<producto_id>/descargar/
+
+    Requisitos:
+      - Debe existir usuario_id en sesión (login móvil hecho).
+      - Ese usuario debe haber comprado el producto.
+
+    Responde con el archivo binario.
+    """
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return HttpResponseForbidden("Debe iniciar sesión para descargar este producto.")
+
+    # Verificar que el usuario compró este producto
+    if not repo.existe_compra(producto_id, usuario_id):
+        return HttpResponseForbidden("Este producto no ha sido comprado por este usuario.")
+
+    try:
+        filename, contenido, mime = serv.descargar_producto(producto_id)
+    except Exception:
+        raise Http404("Producto no encontrado o sin archivo asociado.")
+
+    resp = HttpResponse(contenido, content_type=mime)
+    resp["Content-Disposition"] = f'attachment; filename=\"{filename}\"'
+    resp["Content-Length"] = str(len(contenido))
+    return resp

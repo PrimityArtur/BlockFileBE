@@ -1,4 +1,7 @@
+import json
+
 from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
@@ -119,3 +122,52 @@ def descargar_producto_movil_view(request, producto_id: int):
     resp["Content-Disposition"] = f'attachment; filename=\"{filename}\"'
     resp["Content-Length"] = str(len(contenido))
     return resp
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def comentar_producto_movil_view(request, producto_id: int):
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return HttpResponseForbidden("Debe iniciar sesión para comentar este producto.")
+
+    if not repo.existe_compra(producto_id, usuario_id):
+        return HttpResponseForbidden("Solo puede comentar productos que ha comprado.")
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"ok": False, "message": "JSON inválido."},
+            status=400
+        )
+
+    descripcion = (payload.get("descripcion") or "").strip()
+    if not descripcion:
+        return JsonResponse(
+            {"ok": False, "message": "La descripción del comentario es obligatoria."},
+            status=400
+        )
+
+    # Podrías limitar longitud si quieres:
+    if len(descripcion) > 1000:
+        return JsonResponse(
+            {"ok": False, "message": "El comentario es demasiado largo (máx. 1000 caracteres)."},
+            status=400
+        )
+
+    # Registrar comentario
+    repo.comentar_producto(producto_id, usuario_id, descripcion)
+
+    # Opcional: devolver comentarios actualizados
+    comentarios = repo.listar_comentarios_producto(producto_id)
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "Comentario registrado correctamente.",
+            "comentarios": comentarios,
+        },
+        status=201,
+    )

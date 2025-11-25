@@ -10,4 +10,10 @@ urlpatterns = [
         api.descargar_producto_movil_view,
         name="descargar_producto_movil",
     ),
+
+    path(
+        "<int:producto_id>/comentar/",
+        api.comentar_producto_movil_view,
+        name="comentar_producto_movil",
+    ),
 ]

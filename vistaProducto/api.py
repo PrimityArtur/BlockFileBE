@@ -27,10 +27,6 @@ def api_detalle_producto(request, producto_id: int):
     """
     # si hay usuario logueado, obtén su id para saldo_cliente y mostrar_acciones
     cliente_id = request.session.get("usuario_id")
-    # user = getattr(request, "user", None)
-    # if getattr(user, "is_authenticated", False):
-    #     # adapta si tu modelo se llama diferente
-    #     cliente_id = getattr(user, "id_usuario", None)
 
     detalle = repo.obtener_detalle_producto(producto_id, cliente_id=cliente_id)
     if not detalle:
@@ -41,8 +37,7 @@ def api_detalle_producto(request, producto_id: int):
     # detalle es típicamente un dict; ajusta claves según tu repo
     imagen_urls = []
     for img_id in detalle.get("imagen_ids") or []:
-        rel = reverse("vistaProducto:api_imagen", args=[img_id])
-
+        rel = reverse("catalogo_movil:imagen", args=[img_id])
         imagen_urls.append(_build_abs(request, rel))
 
     # URLs de descarga

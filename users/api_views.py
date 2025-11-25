@@ -1,4 +1,4 @@
-# users/api.py
+# users/api_views.py
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.db import transaction
@@ -6,7 +6,8 @@ from rest_framework import serializers, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import Usuario, Cliente
+from core.models import Usuario, Cliente, Administrador
+from . import services as serv
 
 
 class LoginMovilSerializer(serializers.Serializer):
@@ -20,37 +21,77 @@ class LoginMovilSerializer(serializers.Serializer):
         if not nombre or not contrasena:
             raise serializers.ValidationError("Nombre y contraseña son obligatorios.")
 
+        # Usamos la misma lógica que la web
         try:
-            usuario = Usuario.objects.get(nombre_usuario=nombre)
-        except Usuario.DoesNotExist:
-            raise serializers.ValidationError("Usuario o contraseña inválidos.")
+            resultado = serv.autenticar_usuario(nombre=nombre, contrasena=contrasena)
+        except serv.DomainError as e:
+            raise serializers.ValidationError(str(e))
 
-        if usuario.contrasena != contrasena:
-            # En tu proyecto no usas hash, es comparación directa
-            raise serializers.ValidationError("Usuario o contraseña inválidos.")
+        usuario = resultado["usuario"]
+        tipo = resultado["tipo"]  # "cliente", "administrador" o "desconocido"
 
-        # Asegurar que sea cliente activo
-        try:
-            cliente = usuario.cliente
-        except Cliente.DoesNotExist:
-            raise serializers.ValidationError("El usuario no tiene perfil de cliente.")
+        if tipo == "cliente":
+            try:
+                cliente = usuario.cliente
+            except Cliente.DoesNotExist:
+                raise serializers.ValidationError("El usuario no tiene perfil de cliente.")
 
-        if cliente.excliente:
-            raise serializers.ValidationError("Este cliente está marcado como excliente.")
+            if cliente.excliente:
+                raise serializers.ValidationError("Este cliente está marcado como excliente.")
 
-        attrs["usuario"] = usuario
-        attrs["cliente"] = cliente
+            attrs["usuario"] = usuario
+            attrs["tipo"] = "cliente"
+            attrs["cliente"] = cliente
+
+        elif tipo == "administrador":
+            try:
+                admin = usuario.administrador
+            except Administrador.DoesNotExist:
+                raise serializers.ValidationError("El usuario no tiene perfil de administrador.")
+
+            if not admin.acceso:
+                raise serializers.ValidationError("El acceso del administrador está deshabilitado.")
+
+            attrs["usuario"] = usuario
+            attrs["tipo"] = "administrador"
+            attrs["admin"] = admin
+
+        else:
+            raise serializers.ValidationError("El usuario no tiene un rol válido.")
+
         return attrs
 
     def to_representation(self, instance):
+        """
+        Unificamos la respuesta para móvil:
+
+        Siempre devolvemos:
+        - id_usuario
+        - nombre_usuario
+        - correo
+        - saldo        (para admin lo ponemos '0')
+        - excliente    (para admin False)
+        - tipo         ("cliente" o "administrador")
+        """
         usuario = instance["usuario"]
-        cliente = instance["cliente"]
+        tipo = instance["tipo"]
+
+        if tipo == "cliente":
+            cliente = instance["cliente"]
+            saldo = str(cliente.saldo)
+            excliente = cliente.excliente
+        else:
+            # Para administrador no hay saldo de cliente
+            saldo = "0"
+            excliente = False
+
         return {
             "id_usuario": usuario.id_usuario,
             "nombre_usuario": usuario.nombre_usuario,
             "correo": usuario.correo,
-            "saldo": str(cliente.saldo),
-            "excliente": cliente.excliente,
+            "saldo": saldo,
+            "excliente": excliente,
+            "tipo": tipo,
         }
 
 
@@ -102,6 +143,7 @@ class RegisterMovilSerializer(serializers.Serializer):
             "correo": usuario.correo,
             "saldo": str(cliente.saldo),
             "excliente": cliente.excliente,
+            "tipo": "cliente",
         }
 
 
@@ -115,18 +157,16 @@ class LoginMovilView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginMovilSerializer(data=request.data)
         if serializer.is_valid():
-            # Recuperar usuario y cliente validados
             usuario = serializer.validated_data["usuario"]
-            cliente = serializer.validated_data["cliente"]
+            tipo = serializer.validated_data["tipo"]
 
-            # === GUARDAR EN SESIÓN IGUAL QUE EN LA WEB ===
+            # Guardamos en sesión igual que en la web, pero respetando el tipo
             request.session["usuario_id"] = usuario.id_usuario
-            request.session["usuario_tipo"] = "cliente"
+            request.session["usuario_tipo"] = tipo  # "cliente" o "administrador"
             request.session["usuario_nombre"] = usuario.nombre_usuario
             request.session["usuario_correo"] = usuario.correo
             request.session["usuario_contrasena"] = usuario.contrasena
 
-            # Representación JSON (igual que antes)
             data = serializer.to_representation(serializer.validated_data)
             return Response(data, status=status.HTTP_200_OK)
 

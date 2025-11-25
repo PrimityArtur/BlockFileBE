@@ -43,10 +43,6 @@ class AdminProductosListMovilView(APIView):
 
 
 class AdminProductoDetalleMovilView(APIView):
-    """
-    GET /apimovil/admin/productos/detalle/<id>/
-    Devuelve el detalle completo del producto (para editar).
-    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk: int, *args, **kwargs):
@@ -59,22 +55,6 @@ class AdminProductoDetalleMovilView(APIView):
 
 
 class AdminProductoGuardarMovilView(APIView):
-    """
-    POST /apimovil/admin/productos/guardar/
-    Crea o actualiza un producto.
-
-    Body JSON (coincide con GuardarProductoSerializer):
-    {
-      "id": 1|null,
-      "nombre": "...",
-      "descripcion": "...",
-      "version": "...",
-      "precio": "10.50",
-      "id_autor": 3|null,
-      "id_categoria": 2|null,
-      "activo": true
-    }
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):

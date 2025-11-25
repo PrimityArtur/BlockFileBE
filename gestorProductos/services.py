@@ -17,7 +17,7 @@ def obtener_detalle(id_producto:int) -> Optional[dict]:
 
 def guardar_producto(
     *,
-    id: Optional[int],
+    id: Optional[int] = None,
     nombre: str,
     descripcion: str,
     version: str,

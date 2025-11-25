@@ -1,5 +1,7 @@
 import json
+from decimal import Decimal
 
+from django.db import transaction
 from django.http import JsonResponse, Http404, HttpResponseForbidden, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -212,6 +214,80 @@ def calificar_producto_movil_view(request, producto_id: int):
             "ok": True,
             "message": "Calificación registrada correctamente.",
             "calificacion_promedio": detalle.get("calificacion_promedio"),
+        },
+        status=201,
+    )
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def comprar_producto_movil_view(request, producto_id: int):
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return HttpResponseForbidden("Debe iniciar sesión para comprar este producto.")
+
+    # Si ya lo compró, devolvemos OK sin volver a descontar
+    if repo.existe_compra(producto_id, usuario_id):
+        detalle = repo.obtener_detalle_producto(producto_id, usuario_id)
+        return JsonResponse(
+            {
+                "ok": True,
+                "message": "Ya habías comprado este producto.",
+                "saldo_cliente": detalle.get("saldo_cliente"),
+                "cliente_compro": detalle.get("cliente_compro"),
+                "compras": detalle.get("compras"),
+            },
+            status=200,
+        )
+
+    with transaction.atomic():
+        precio = repo.get_producto_precio(producto_id)
+        if precio is None:
+            raise Http404("Producto no encontrado o sin precio configurado.")
+
+        saldo_actual = repo.get_cliente_saldo_for_update(usuario_id)
+        if saldo_actual is None:
+            return JsonResponse(
+                {"ok": False, "message": "Cliente no encontrado."},
+                status=400,
+            )
+
+        if saldo_actual < Decimal(precio):
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "message": "Saldo insuficiente para realizar la compra.",
+                    "saldo_cliente": float(saldo_actual),
+                    "precio": float(precio),
+                },
+                status=400,
+            )
+
+        # Intentar descontar saldo de forma segura
+        ok_saldo = repo.reducir_saldo(usuario_id, precio)
+        if not ok_saldo:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "message": "No fue posible actualizar el saldo. Intente nuevamente.",
+                },
+                status=400,
+            )
+
+        # Registrar compra
+        repo.insert_compra(producto_id, usuario_id)
+
+    # Fuera de la transacción, obtenemos el detalle actualizado
+    detalle = repo.obtener_detalle_producto(producto_id, usuario_id)
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "Compra realizada correctamente.",
+            "saldo_cliente": detalle.get("saldo_cliente"),
+            "cliente_compro": detalle.get("cliente_compro"),
+            "compras": detalle.get("compras"),
         },
         status=201,
     )

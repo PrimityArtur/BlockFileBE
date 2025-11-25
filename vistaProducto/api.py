@@ -18,19 +18,14 @@ def _build_abs(request, relative_url: str) -> str:
     Convierte una URL relativa (ej. /vista/imagen/1/) en absoluta
     para que el móvil tenga la URL completa.
     """
-    return request.build_absolute_uri(relative_url)
+    url = request.build_absolute_uri(relative_url)
 
-@require_http_methods(["GET"])
-def api_imagen_producto_movil(request, id_imagen: int):
-    try:
-        img = ImagenProducto.objects.only("archivo").get(pk=id_imagen)
-    except ImagenProducto.DoesNotExist:
-        raise Http404("Imagen no encontrada")
+    # Si estás en Railway y viene http://, forzamos https://
+    if url.startswith("http://") and "railway.app" in url:
+        url = "https://" + url[len("http://") :]
 
-    data = bytes(img.archivo)
-    mime = magic.Magic(mime=True)
-    content_type = mime.from_buffer(data) or "application/octet-stream"
-    return HttpResponse(data, content_type=content_type)
+    # Si quieres, puedes añadir más lógica (ej. blockfile.up.railway.app)
+    return url
 
 @require_http_methods(["GET"])
 def api_detalle_producto(request, producto_id: int):

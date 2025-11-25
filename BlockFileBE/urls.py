@@ -31,5 +31,6 @@ urlpatterns = [
 
     #APISMOVIL
     path('apimovil/', include('users.api_urls', namespace='apimovil')),
+    path('apimovil/catalogo/', include('catalogoProductos.api_urls',namespace="catalogo_movil"))
 
 ]

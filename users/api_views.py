@@ -1,4 +1,5 @@
 # users/api_views.py
+from decimal import Decimal
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.db import transaction
@@ -8,126 +9,56 @@ from rest_framework.views import APIView
 
 from core.models import Usuario, Cliente, Administrador
 from . import services as serv
-
+from . import repository as repo
 
 class LoginMovilSerializer(serializers.Serializer):
     nombre = serializers.CharField(max_length=10)
     contrasena = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        nombre = (attrs.get("nombre") or "").strip()
-        contrasena = attrs.get("contrasena") or ""
+        nombre = attrs.get("nombre")
+        contrasena = attrs.get("contrasena")
 
-        if not nombre or not contrasena:
-            raise serializers.ValidationError("Nombre y contraseña son obligatorios.")
-
-        # Usamos la lógica de dominio compartida
         try:
-            result = serv.autenticar_usuario(nombre=nombre, contrasena=contrasena)
-        except serv.DomainError as e:
-            raise serializers.ValidationError(str(e))
+            usuario = Usuario.objects.get(nombre_usuario=nombre)
+        except Usuario.DoesNotExist:
+            raise serializers.ValidationError({"detail": ["Usuario o contraseña inválidos."]})
 
-        usuario = result["usuario"]
-        tipo = result.get("tipo") or "desconocido"
+        if usuario.contrasena != contrasena:
+            raise serializers.ValidationError({"detail": ["Usuario o contraseña inválidos."]})
 
-        data = {"usuario": usuario, "tipo": tipo}
+        # ¿Es admin?
+        es_admin = Administrador.objects.filter(pk=usuario.id_usuario, acceso=True).exists()
 
-        if tipo == "cliente":
-            # Aseguramos que tenga perfil de cliente y que no sea excliente
-            try:
-                cliente = Cliente.objects.get(pk=usuario.id_usuario)
-            except Cliente.DoesNotExist:
-                raise serializers.ValidationError("El usuario no tiene perfil de cliente.")
+        # ¿Es cliente?
+        cliente = Cliente.objects.filter(pk=usuario.id_usuario).first()
+        if cliente:
+            saldo = cliente.saldo
+            excliente = cliente.excliente
+        else:
+            saldo = Decimal("0")
+            excliente = True
 
-            if cliente.excliente:
-                raise serializers.ValidationError("Este cliente está marcado como excliente.")
+        attrs["id_usuario"] = usuario.id_usuario
+        attrs["nombre_usuario"] = usuario.nombre_usuario
+        attrs["correo"] = usuario.correo
+        attrs["saldo"] = str(saldo)
+        attrs["excliente"] = excliente
+        attrs["es_admin"] = es_admin
 
-            data["cliente"] = cliente
-
-        elif tipo == "administrador":
-            # Verificamos que realmente exista el registro de Administrador
-            if not Administrador.objects.filter(pk=usuario.id_usuario).exists():
-                raise serializers.ValidationError("No tienes permisos de administrador.")
-
-        attrs.update(data)
         return attrs
 
     def to_representation(self, instance):
         """
-        instance es el diccionario que armamos en validate():
-        { "usuario": Usuario, "tipo": str, "cliente": Cliente? }
+        instance es self.validated_data
         """
-        usuario = instance["usuario"]
-        tipo = instance.get("tipo") or "desconocido"
-
-        saldo = "0.00"
-        excliente = False
-
-        if tipo == "cliente":
-            cliente = instance["cliente"]
-            saldo = str(cliente.saldo)
-            excliente = cliente.excliente
-
         return {
-            "id_usuario": usuario.id_usuario,
-            "nombre_usuario": usuario.nombre_usuario,
-            "correo": usuario.correo,
-            "saldo": saldo,
-            "excliente": excliente,
-            "tipo": tipo,
-        }
-
-
-class RegisterMovilSerializer(serializers.Serializer):
-    nombre = serializers.CharField(max_length=10)
-    correo = serializers.CharField(max_length=50)
-    contrasena = serializers.CharField(write_only=True, min_length=4)
-
-    def validate_correo(self, value: str) -> str:
-        try:
-            validate_email(value)
-        except DjangoValidationError:
-            raise serializers.ValidationError("Correo inválido.")
-        return value
-
-    def validate(self, attrs):
-        nombre = (attrs.get("nombre") or "").strip()
-        correo = (attrs.get("correo") or "").strip()
-        contrasena = attrs.get("contrasena") or ""
-        if not nombre or not correo or not contrasena:
-            raise serializers.ValidationError("Nombre, correo y contraseña son obligatorios.")
-        attrs["nombre"] = nombre
-        attrs["correo"] = correo
-        return attrs
-
-    @transaction.atomic
-    def create(self, validated_data):
-        try:
-            usuario = serv.registrar_usuario_y_cliente(
-                nombre=validated_data["nombre"],
-                correo=validated_data["correo"],
-                contrasena=validated_data["contrasena"],
-            )
-        except serv.DomainError as e:
-            raise serializers.ValidationError(str(e))
-        return usuario
-
-    def to_representation(self, instance: Usuario):
-        # Obtenemos el cliente asociado para devolver saldo y excliente
-        try:
-            cliente = Cliente.objects.get(pk=instance.id_usuario)
-            saldo = str(cliente.saldo)
-            excliente = cliente.excliente
-        except Cliente.DoesNotExist:
-            saldo = "0.00"
-            excliente = False
-
-        return {
-            "id_usuario": instance.id_usuario,
-            "nombre_usuario": instance.nombre_usuario,
-            "correo": instance.correo,
-            "saldo": saldo,
-            "excliente": excliente,
+            "id_usuario": instance["id_usuario"],
+            "nombre_usuario": instance["nombre_usuario"],
+            "correo": instance["correo"],
+            "saldo": instance["saldo"],
+            "excliente": instance["excliente"],
+            "es_admin": instance["es_admin"],
         }
 
 
@@ -137,20 +68,56 @@ class LoginMovilView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginMovilSerializer(data=request.data)
         if serializer.is_valid():
-            usuario = serializer.validated_data["usuario"]
-            tipo = serializer.validated_data.get("tipo") or "desconocido"
-
-            # Guardar en sesión (igual que en la web, pero respetando el tipo)
-            request.session["usuario_id"] = usuario.id_usuario
-            request.session["usuario_tipo"] = tipo
-            request.session["usuario_nombre"] = usuario.nombre_usuario
-            request.session["usuario_correo"] = usuario.correo
-            request.session["usuario_contrasena"] = usuario.contrasena
-
             data = serializer.to_representation(serializer.validated_data)
             return Response(data, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterMovilSerializer(serializers.Serializer):
+    nombre = serializers.CharField(max_length=10)
+    correo = serializers.EmailField(max_length=50)
+    contrasena = serializers.CharField(write_only=True, min_length=4, max_length=128)
+
+    def validate_correo(self, value):
+        try:
+            validate_email(value)
+        except DjangoValidationError:
+            raise serializers.ValidationError("Correo inválido.")
+        if Usuario.objects.filter(correo__iexact=value).exists():
+            raise serializers.ValidationError("El correo ya está registrado.")
+        return value
+
+    def validate_nombre(self, value):
+        if Usuario.objects.filter(nombre_usuario=value).exists():
+            raise serializers.ValidationError("El nombre de usuario ya existe.")
+        return value
+
+    @transaction.atomic
+    def create(self, validated_data):
+        usuario = Usuario.objects.create(
+            nombre_usuario=validated_data["nombre"],
+            correo=validated_data["correo"],
+            contrasena=validated_data["contrasena"],
+        )
+        # Crear cliente por defecto
+        Cliente.objects.create(
+            usuario=usuario,
+            excliente=False,
+            saldo=Decimal("0.00"),
+        )
+        return usuario
+
+    def to_representation(self, usuario: Usuario):
+        cliente = Cliente.objects.filter(pk=usuario.id_usuario).first()
+        saldo = cliente.saldo if cliente else Decimal("0")
+        excliente = cliente.excliente if cliente else True
+        return {
+            "id_usuario": usuario.id_usuario,
+            "nombre_usuario": usuario.nombre_usuario,
+            "correo": usuario.correo,
+            "saldo": str(saldo),
+            "excliente": excliente,
+        }
 
 
 class RegisterMovilView(APIView):
@@ -159,93 +126,81 @@ class RegisterMovilView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = RegisterMovilSerializer(data=request.data)
         if serializer.is_valid():
-            usuario = serializer.save()
+            usuario = serializer.create(serializer.validated_data)
             data = serializer.to_representation(usuario)
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminPerfilMovilView(APIView):
-    """
-    GET  /apimovil/admin/perfil/?id_usuario=...
-        -> devuelve AdminProfileDto
-    POST /apimovil/admin/perfil/
-        body: AdminProfileDto
-        -> actualiza y devuelve AdminProfileDto
-    """
-    permission_classes = [permissions.AllowAny]
 
-    def get(self, request, *args, **kwargs):
-        try:
-            id_usuario = int(request.query_params.get("id_usuario") or 0)
-        except (TypeError, ValueError):
-            return Response({"detail": "id_usuario inválido."}, status=status.HTTP_400_BAD_REQUEST)
+class AdminProfileSerializer(serializers.Serializer):
+    id_usuario = serializers.IntegerField()
+    nombre = serializers.CharField(max_length=10)
+    correo = serializers.EmailField(max_length=50)
+    contrasena = serializers.CharField(max_length=128, min_length=4)
 
-        if id_usuario <= 0:
-            return Response({"detail": "id_usuario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
+    def validate(self, attrs):
+        # Aquí podrías llamar a un servicio para validar unicidad, etc.
+        return attrs
 
-        try:
-            usuario = Usuario.objects.get(pk=id_usuario)
-        except Usuario.DoesNotExist:
-            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
-
-        if not Administrador.objects.filter(pk=id_usuario).exists():
-            return Response({"detail": "No tienes permisos de administrador."}, status=status.HTTP_403_FORBIDDEN)
-
-        data = {
+    def to_representation(self, usuario: Usuario):
+        return {
             "id_usuario": usuario.id_usuario,
             "nombre": usuario.nombre_usuario,
             "correo": usuario.correo,
             "contrasena": usuario.contrasena,
         }
+
+
+class AdminProfileMovilView(APIView):
+    """
+    GET  /apimovil/admin/perfil/?id_usuario=XX  -> datos del admin
+    POST /apimovil/admin/perfil/                -> actualizar datos del admin
+    """
+    permission_classes = [permissions.AllowAny]  # si luego manejas auth, cámbialo
+
+    def get(self, request, *args, **kwargs):
+        id_usuario = request.query_params.get("id_usuario")
+        if not id_usuario:
+            return Response({"detail": "id_usuario es requerido."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            id_usuario = int(id_usuario)
+        except ValueError:
+            return Response({"detail": "id_usuario inválido."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        usuario = repo.get_usuario(id=id_usuario)
+        if not usuario:
+            return Response({"detail": "Usuario no encontrado."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        # Verificar que sea administrador
+        if not Administrador.objects.filter(pk=id_usuario, acceso=True).exists():
+            return Response({"detail": "No tienes permisos de administrador."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        ser = AdminProfileSerializer()
+        data = ser.to_representation(usuario)
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        body = request.data or {}
+        ser = AdminProfileSerializer(data=request.data)
+        if not ser.is_valid():
+            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = ser.validated_data
+        usuario_id = data["id_usuario"]
         try:
-            id_usuario = int(body.get("id_usuario") or 0)
-        except (TypeError, ValueError):
-            return Response({"detail": "id_usuario inválido."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if id_usuario <= 0:
-            return Response({"detail": "id_usuario es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
-
-        nombre = (body.get("nombre") or "").strip()
-        correo = (body.get("correo") or "").strip()
-        contrasena = body.get("contrasena") or ""
-
-        if not nombre or not correo or not contrasena:
-            return Response(
-                {"detail": "Nombre, correo y contraseña son obligatorios."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Validamos el correo con el mismo validador que antes
-        try:
-            validate_email(correo)
-        except DjangoValidationError:
-            return Response({"detail": "Correo inválido."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            usuario = serv.actualizar_datos_administrador(
-                usuario_id=id_usuario,
-                nombre=nombre,
-                contrasena=contrasena,
-                correo=correo,
+            usuario_actualizado = serv.actualizar_datos_administrador(
+                usuario_id=usuario_id,
+                nombre=data["nombre"],
+                correo=data["correo"],
+                contrasena=data["contrasena"],
             )
         except serv.DomainError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Si es el mismo usuario que está en sesión, actualizamos la sesión también
-        if request.session.get("usuario_id") == usuario.id_usuario:
-            request.session["usuario_nombre"] = usuario.nombre_usuario
-            request.session["usuario_correo"] = usuario.correo
-            request.session["usuario_contrasena"] = usuario.contrasena
-
-        data = {
-            "id_usuario": usuario.id_usuario,
-            "nombre": usuario.nombre_usuario,
-            "correo": usuario.correo,
-            "contrasena": usuario.contrasena,
-        }
-        return Response(data, status=status.HTTP_200_OK)
+        out_ser = AdminProfileSerializer()
+        out_data = out_ser.to_representation(usuario_actualizado)
+        return Response(out_data, status=status.HTTP_200_OK)

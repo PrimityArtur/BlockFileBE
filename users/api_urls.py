@@ -7,7 +7,7 @@ urlpatterns = [
     path("login/", api.LoginMovilView.as_view(), name="login"),
     path("register/", api.RegisterMovilView.as_view(), name="register"),
 
-    path("admin/perfil/", api.AdminPerfilMovilView.as_view(), name="admin_perfil"),
+    path("admin/perfil/", api.AdminProfileMovilView.as_view(), name="admin_perfil"),
 
 
 

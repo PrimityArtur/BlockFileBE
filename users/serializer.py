@@ -209,56 +209,44 @@ class RegisterMovilSerializer(serializers.Serializer):
             "tipo": "cliente",
         }
 
-class AdminProfileSerializer(serializers.Serializer):
-    id_usuario = serializers.IntegerField()
+
+
+class AdminPerfilMovilSerializer(serializers.Serializer):
+    id_usuario = serializers.IntegerField(read_only=True)
     nombre = serializers.CharField(max_length=10)
     correo = serializers.EmailField(max_length=50)
-    contrasena = serializers.CharField(
-        allow_blank=True,
-        required=False,
-        min_length=4
-    )
+    contrasena = serializers.CharField(min_length=4)
 
     def validate(self, attrs):
-        id_usuario = attrs["id_usuario"]
-        nombre = attrs["nombre"]
-        correo = attrs["correo"]
+        instance = self.instance
+        if instance is None:
+            return attrs
 
-        # Verificar que el usuario exista
-        usuario = repo.get_usuario(id=id_usuario)
-        if not usuario:
-            raise serializers.ValidationError("Usuario no encontrado.")
+        nombre = attrs.get("nombre", instance.nombre_usuario)
+        correo = attrs.get("correo", instance.correo)
 
-        # Validar unicidad
-        if repo.usuario_existe(nombre=nombre, exclude_id=id_usuario):
+        # Verificar unicidad de nombre y correo (excluyendo al propio usuario)
+        if repo.usuario_existe(nombre=nombre, exclude_id=instance.id_usuario):
             raise serializers.ValidationError("El nombre de usuario ya existe.")
-        if repo.usuario_existe(correo=correo, exclude_id=id_usuario):
+
+        if repo.usuario_existe(correo=correo, exclude_id=instance.id_usuario):
             raise serializers.ValidationError("El correo ya está registrado.")
 
-        attrs["usuario"] = usuario
         return attrs
 
-    def update(self, instance, validated_data):
-        # instance es el Usuario, pero no lo usamos, usamos repo.actualizar_usuario
-        usuario_id = validated_data["id_usuario"]
-        nombre = validated_data["nombre"]
-        correo = validated_data["correo"]
-        contrasena = validated_data.get("contrasena") or None
-
-        usuario = repo.actualizar_usuario(
-            usuario_id=usuario_id,
-            nombre=nombre,
-            correo=correo,
-            contrasena=contrasena,
-        )
-        return usuario
-
-    def to_representation(self, usuario: Usuario):
+    def to_representation(self, usuario):
         return {
             "id_usuario": usuario.id_usuario,
             "nombre": usuario.nombre_usuario,
             "correo": usuario.correo,
-            # Igual que en la web, devolvemos la contraseña en claro
-            # porque la guardas así (sin hash) y la plantilla la usa.
             "contrasena": usuario.contrasena,
         }
+
+    def update(self, instance, validated_data):
+        actualizado = repo.actualizar_usuario(
+            usuario_id=instance.id_usuario,
+            nombre=validated_data.get("nombre"),
+            correo=validated_data.get("correo"),
+            contrasena=validated_data.get("contrasena"),
+        )
+        return actualizado

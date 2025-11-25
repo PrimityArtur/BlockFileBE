@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 from core.models import Usuario, Cliente, Administrador
 from . import services as serv
 from . import repository as repo
-from .serializer import LoginMovilSerializer, RegisterMovilSerializer, AdminProfileSerializer
+from .serializer import LoginMovilSerializer, RegisterMovilSerializer, AdminPerfilMovilSerializer
+
 
 class LoginMovilView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -45,32 +46,42 @@ class RegisterMovilView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminProfileMovilView(APIView):
-    permission_classes = [permissions.AllowAny]
+class AdminPerfilMovilView(APIView):
+    """
+    API para leer/actualizar el perfil del administrador desde el móvil.
+
+    GET  /apimovil/admin/perfil/?id_usuario=...
+    PUT  /apimovil/admin/perfil/    { id_usuario, nombre, correo, contrasena }
+    """
+    permission_classes = [permissions.AllowAny]  # si luego quieres puedes endurecer esto
 
     def get(self, request, *args, **kwargs):
-        # Para móvil, recibimos el id por query param
-        id_usuario = request.query_params.get("id_usuario")
-        if not id_usuario:
-            return Response({"detail": "id_usuario es requerido."},
-                            status=status.HTTP_400_BAD_REQUEST)
+        usuario_id = request.query_params.get("id_usuario") or request.data.get("id_usuario")
+        if not usuario_id:
+            return Response({"detail": "Falta id_usuario."}, status=status.HTTP_400_BAD_REQUEST)
 
-        usuario = repo.get_usuario(id=int(id_usuario))
+        usuario = repo.get_usuario(id=int(usuario_id))
         if not usuario:
-            return Response({"detail": "Usuario no encontrado."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = AdminProfileSerializer()
-        data = serializer.to_representation(usuario)
+        serializer = AdminPerfilMovilSerializer(usuario)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        print(usuario.nombre_usuario)
-        return Response(data, status=status.HTTP_200_OK)
+    def put(self, request, *args, **kwargs):
+        usuario_id = request.data.get("id_usuario")
+        if not usuario_id:
+            return Response({"detail": "Falta id_usuario."}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, *args, **kwargs):
-        serializer = AdminProfileSerializer(data=request.data)
+        usuario = repo.get_usuario(id=int(usuario_id))
+        if not usuario:
+            return Response({"detail": "Usuario no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AdminPerfilMovilSerializer(instance=usuario, data=request.data)
         if serializer.is_valid():
-            usuario = serializer.update(None, serializer.validated_data)
-            data = serializer.to_representation(usuario)
-            return Response(data, status=status.HTTP_200_OK)
+            actualizado = serializer.save()
+            return Response(
+                AdminPerfilMovilSerializer(actualizado).data,
+                status=status.HTTP_200_OK
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

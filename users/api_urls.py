@@ -8,7 +8,7 @@ urlpatterns = [
     path("register/", api.RegisterMovilView.as_view(), name="register"),
 
     path("admin/perfil/", api.AdminProfileMovilView.as_view(), name="admin_perfil"),
-
+    path("admin/productos/", include("gestorProductos.api_urls")),
 
 
     path("catalogo/", include("catalogoProductos.api_urls")),

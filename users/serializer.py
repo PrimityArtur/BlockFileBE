@@ -145,7 +145,6 @@ class LoginMovilSerializer(serializers.Serializer):
             saldo = str(cliente.saldo)
             excliente = cliente.excliente
         else:
-            # Para administrador no hay saldo de cliente
             saldo = "0"
             excliente = False
 

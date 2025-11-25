@@ -62,6 +62,8 @@ class AdminProfileMovilView(APIView):
 
         serializer = AdminProfileSerializer()
         data = serializer.to_representation(usuario)
+
+        print(usuario.nombre_usuario)
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):

@@ -57,8 +57,6 @@ def api_detalle_producto(request, producto_id: int):
         reverse("vistaProducto:descargar_producto", args=[producto_id]),
     )
 
-    print(imagen_urls)
-
     data = {
         "ok": True,
         "producto": {

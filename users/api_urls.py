@@ -11,7 +11,7 @@ urlpatterns = [
 
 
 
-    path("catalogo/", include("catalogoProductos.api_urls")),
+    path("catalogo/", include("catalogoProductos.api_urls", namespace="catalogo_movil")),
     path("rankings/", include("Rankings.api_urls")),
     path("productos/", include("vistaProducto.api_urls"))
 

@@ -37,7 +37,7 @@ def api_detalle_producto(request, producto_id: int):
     # detalle es típicamente un dict; ajusta claves según tu repo
     imagen_urls = []
     for img_id in detalle.get("imagen_ids") or []:
-        rel = reverse("catalogo_movil:imagen", args=[img_id])
+        rel = reverse(" catalogo_movil:imagen", args=[img_id])
         imagen_urls.append(_build_abs(request, rel))
 
     # URLs de descarga

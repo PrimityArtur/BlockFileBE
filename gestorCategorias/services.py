@@ -16,7 +16,7 @@ def obtener_detalle(id_categoria:int) -> Optional[dict]:
 
 def guardar_categoria(
     *,
-    id: Optional[int],
+    id: Optional[int] = None,
     nombre: str,
     descripcion: str,
 ) -> int:

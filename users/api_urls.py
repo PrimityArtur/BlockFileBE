@@ -9,9 +9,7 @@ urlpatterns = [
 
     path("admin/perfil/", api.AdminProfileMovilView.as_view(), name="admin_perfil"),
     path("admin/productos/", include("gestorProductos.api_urls")),
-
     path("admin/categorias/", include("gestorCategorias.api_urls")),
-
 
     path("catalogo/", include("catalogoProductos.api_urls")),
     path("rankings/", include("Rankings.api_urls")),

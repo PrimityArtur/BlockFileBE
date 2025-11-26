@@ -3,6 +3,7 @@ from django.http import Http404, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializer import ValidarProductoSerializer, DetalleProductoEntradaSerializer, GuardarProductoSerializer
 from . import services as serv
@@ -119,21 +120,43 @@ class AdminProductoArchivoMovilView(APIView):
 class AdminProductoImagenAgregarMovilView(APIView):
     """
     POST /apimovil/admin/productos/imagenes/agregar/
-    Campos (multipart/form-data):
+    multipart/form-data:
       - id_producto
       - orden (opcional)
-      - archivo (file)
+      - archivo
     """
     permission_classes = [permissions.AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, *args, **kwargs):
-        data = {
-            "id_producto": request.data.get("id_producto"),
-            "orden": request.data.get("orden"),
-        }
-        ser = ImagenEntradaSerializer(data=data)
-        ser.is_valid(raise_exception=True)
+        # ---- id_producto ----
+        raw_id = request.data.get("id_producto")
+        if not raw_id:
+            return Response(
+                {"detail": "id_producto es requerido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            id_producto = int(raw_id)
+        except ValueError:
+            return Response(
+                {"detail": "id_producto inválido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        # ---- orden (opcional) ----
+        raw_orden = request.data.get("orden")
+        orden = None
+        if raw_orden not in (None, "", "null"):
+            try:
+                orden = int(raw_orden)
+            except ValueError:
+                return Response(
+                    {"detail": "orden inválido"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # ---- archivo ----
         archivo = request.FILES.get("archivo")
         if not archivo:
             return Response(
@@ -141,7 +164,13 @@ class AdminProductoImagenAgregarMovilView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        img_id = ser.agregar(contenido=archivo.read())
+        # Guardar imagen en BD
+        img_id = serv.agregar_imagen(
+            id_producto=id_producto,
+            contenido=archivo.read(),
+            orden=orden,
+        )
+
         return Response({"ok": True, "id_imagen": img_id})
 
 

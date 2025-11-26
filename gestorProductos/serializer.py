@@ -53,7 +53,7 @@ class DetalleProductoEntradaSerializer(serializers.Serializer):
 
 class ImagenEntradaSerializer(serializers.Serializer):
     id_producto = serializers.IntegerField()
-    orden = serializers.IntegerField(required=False)
+    orden = serializers.IntegerField(required=False, allow_null=True)
 
     def agregar(self, *, contenido: bytes) -> int:
         d = self.validated_data

@@ -1,96 +1,40 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import permissions
 
-from .serializer import (
-    ValidarCategoriaSerializer,
-    GuardarCategoriaSerializer,
-    EliminarCategoriaSerializer,
-    DetalleCategoriaEntradaSerializer,
-)
+from .serializer import ValidarCategoriaSerializer
+from core.utils import PER_PAGE
 
 
-class AdminCategoriasListApi(APIView):
+class AdminCategoriasListMovilView(APIView):
     """
-    GET /apimovil/admin/categorias/listar/
-    ?page=1&id=...&nombre=...&descripcion=...
+    GET /apimovil/admin/categorias/?page=1&id=&nombre=&descripcion=
+    Listado paginado de categorías para el panel de administración móvil.
     """
+    # Igual que otros endpoints móviles, lo dejamos abierto por ahora
+    permission_classes = [permissions.AllowAny]
+
     def get(self, request, *args, **kwargs):
-        s = ValidarCategoriaSerializer(data=request.query_params)
-        if not s.is_valid():
-            return Response(
-                {"ok": False, "errors": s.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        data = {
+            "id": request.query_params.get("id"),
+            "nombre": request.query_params.get("nombre", ""),
+            "descripcion": request.query_params.get("descripcion", ""),
+            "page": request.query_params.get("page", 1),
+        }
 
-        # Puedes controlar el PER_PAGE específico para móvil aquí si quieres
-        filas, total_pages = s.listar(per_page=10)
-        page = s.validated_data.get("page") or 1
+        ser = ValidarCategoriaSerializer(data=data)
+        ser.is_valid(raise_exception=True)
 
+        filas, total_pages = ser.listar(per_page=PER_PAGE)
+        page = int(ser.validated_data.get("page") or 1)
+
+        # Misma estructura que el listar de productos (rows + page + total_pages)
+        # y coherente con GestionCategorias.html
         return Response(
             {
                 "ok": True,
-                "rows": filas,
+                "rows": filas,          # [{'id', 'nombre', 'descripcion'}, ...]
                 "page": page,
                 "total_pages": total_pages,
-            },
-            status=status.HTTP_200_OK,
+            }
         )
-
-
-class AdminCategoriasDetalleApi(APIView):
-    """
-    GET /apimovil/admin/categorias/detalle/<int:id_categoria>/
-    """
-    def get(self, request, id_categoria: int, *args, **kwargs):
-        s = DetalleCategoriaEntradaSerializer(data={"id_categoria": id_categoria})
-        if not s.is_valid():
-            return Response(
-                {"ok": False, "errors": s.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        detalle = s.obtener()
-        if not detalle:
-            return Response(
-                {"ok": False, "detail": "Categoría no encontrada"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        return Response(detalle, status=status.HTTP_200_OK)
-
-
-class AdminCategoriasGuardarApi(APIView):
-    """
-    POST /apimovil/admin/categorias/guardar/
-    Body JSON: { "id": null|int, "nombre": "...", "descripcion": "..." }
-    """
-    def post(self, request, *args, **kwargs):
-        s = GuardarCategoriaSerializer(data=request.data)
-        if not s.is_valid():
-            return Response(
-                {"ok": False, "errors": s.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        data = s.save()   # -> {"id": ...}
-        return Response(
-            {"ok": True, **data},
-            status=status.HTTP_200_OK,
-        )
-
-
-class AdminCategoriasEliminarApi(APIView):
-    """
-    POST /apimovil/admin/categorias/eliminar/<int:id_categoria>/
-    """
-    def post(self, request, id_categoria: int, *args, **kwargs):
-        s = EliminarCategoriaSerializer(data={"id_categoria": id_categoria})
-        if not s.is_valid():
-            return Response(
-                {"ok": False, "errors": s.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        s.aplicar()
-        return Response({"ok": True}, status=status.HTTP_200_OK)

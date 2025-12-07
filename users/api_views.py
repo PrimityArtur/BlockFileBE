@@ -101,8 +101,7 @@ class LoginMovilView(APIView):
             data = serializer.to_representation(serializer.validated_data)
             return Response(data, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response(serializer.errors[next(iter(serializer.errors))][0], status=status.HTTP_400_BAD_REQUEST)
 
 # ============================================================
 # REGISTRO MÓVIL (solo clientes)

@@ -26,16 +26,12 @@ def iniciar_sesion_view(request):
 
             return redirect("users:perfil_admin" if tipo == "administrador" else "catalogoProductos:catalogo")
 
-        ctx["errors"] = ser.errors
-
+        ctx["errors"] = ser.errors[next(iter(ser.errors))][0]
     return render(request, "users/IniciarSesion.html", ctx)
 
 
 @require_http_methods(["GET", "POST"])
 def registrarse_view(request):
-    # Formulario HTML para registrarse.
-    # - POST crea Usuario y siempre su Cliente asociado.
-    # - Si OK: inicia sesión y redirige a Catalogo.
 
     ctx = {"errors": None}
     if request.method == "POST":
@@ -54,7 +50,7 @@ def registrarse_view(request):
             request.session["usuario_contrasena"] = usuario.contrasena
             return redirect("catalogoProductos:catalogo")
         except serializers.ValidationError as e:
-            ctx["errors"] = e.detail
+            ctx["errors"] = e.detail[next(iter(e.detail))][0]
 
     return render(request, "users/Registrarse.html", ctx)
 
@@ -75,7 +71,6 @@ def perfil_admin_view(request):
             "contrasena": (request.POST.get("contrasena") or "").strip(),
         }
         ser = serial.AdminPerfilUpdateSerializer(data=data, context={"request": request})
-        print(data)
         try:
             ser.is_valid(raise_exception=True)
             usuario = ser.save()
@@ -85,7 +80,7 @@ def perfil_admin_view(request):
             request.session["usuario_contrasena"] = usuario.contrasena
             ctx["success"] = "Datos actualizados correctamente."
         except serializers.ValidationError as e:
-            ctx["errors"] = e.detail
+            ctx["errors"] = e.detail[next(iter(e.detail))][0]
 
     return render(request, "users/PerfilAdministrador.html", ctx)
 

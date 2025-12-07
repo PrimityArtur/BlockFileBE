@@ -19,7 +19,7 @@ class IniciarSesionSerializer(serializers.Serializer):
         try:
             resultado = serv.autenticar_usuario(nombre=nombre, contrasena=contrasena)
         except serv.DomainError as e:
-            raise serializers.ValidationError({"Error de logica": [str(e)]})
+            raise serializers.ValidationError({"Error": [str(e)]})
 
         # Inyectamos en validated_data lo que la view necesita
         attrs["usuario"] = resultado["usuario"]
@@ -43,7 +43,7 @@ class RegistrarseSerializer(serializers.Serializer):
             )
             return usuario
         except serv.DomainError as e:
-            raise serializers.ValidationError({"Error de datos": [str(e)]})
+            raise serializers.ValidationError({"Error": [str(e)]})
 
     def save(self, **kwargs):
         if not self.is_valid():
@@ -63,7 +63,7 @@ class AdminPerfilUpdateSerializer(serializers.Serializer):
 
         usuario_id = request.session.get("usuario_id")
         if not usuario_id:
-            raise serializers.ValidationError({"Error de datos": ["Sesión inválida o expirada."]})
+            raise serializers.ValidationError({"Error": ["Sesión inválida o expirada."]})
 
         try:
             usuario = serv.actualizar_datos_administrador(
@@ -74,7 +74,7 @@ class AdminPerfilUpdateSerializer(serializers.Serializer):
             )
             return usuario
         except serv.DomainError as e:
-            raise serializers.ValidationError({"Error de datos": [str(e)]})
+            raise serializers.ValidationError({"Error": [str(e)]})
 
 
     def save(self, **kwargs):
@@ -82,6 +82,4 @@ class AdminPerfilUpdateSerializer(serializers.Serializer):
             raise AssertionError("Debes llamar .is_valid() antes de .save()")
         return self.create(self.validated_data)
 
-
-# API MOVIL SERIALIZER
 

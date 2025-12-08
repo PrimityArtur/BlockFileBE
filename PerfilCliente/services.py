@@ -19,9 +19,9 @@ def validar_usuario(
         correo: str
 ) -> None:
     if repo.existe_nombre_usuario(nombre_usuario, usuario_id):
-        raise ValueError("El nombre de usuario ya está en uso.")
+        raise ValueError("El nombre de usuario ya esta en uso.")
     if repo.existe_correo(correo, usuario_id):
-        raise ValueError("El correo ya está en uso.")
+        raise ValueError("El correo ya esta en uso.")
 
 def actualizar_perfil_cliente(
         usuario_id: int,

@@ -16,11 +16,6 @@ from core.utils import PER_PAGE
 
 
 class AdminProductosListMovilView(APIView):
-    """
-    GET /apimovil/admin/productos/?page=1&id=&nombre=&autor=&categoria=
-    Devuelve el listado paginado de productos para el panel de administración móvil.
-    """
-    # Igual que AdminProfileMovilView, por ahora sin restricción
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
@@ -42,7 +37,7 @@ class AdminProductosListMovilView(APIView):
         return Response(
             {
                 "ok": True,
-                "rows": filas,          # [{'id', 'nombre', 'autor', 'categoria', 'promedio'}, ...]
+                "rows": filas,
                 "page": page,
                 "total_pages": total_pages,
             }
@@ -51,9 +46,6 @@ class AdminProductosListMovilView(APIView):
 
 
 class AdminProductoDetalleMovilView(APIView):
-    """
-    GET /apimovil/admin/productos/detalle/<id>/
-    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk: int, *args, **kwargs):
@@ -86,12 +78,6 @@ class AdminProductoGuardarMovilView(APIView):
 
 
 class AdminProductoArchivoMovilView(APIView):
-    """
-    POST /apimovil/admin/productos/archivo/
-    Campos (multipart/form-data):
-      - id_producto
-      - archivo (file)
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -118,13 +104,6 @@ class AdminProductoArchivoMovilView(APIView):
 
 
 class AdminProductoImagenAgregarMovilView(APIView):
-    """
-    POST /apimovil/admin/productos/imagenes/agregar/
-    multipart/form-data:
-      - id_producto
-      - orden (opcional)
-      - archivo
-    """
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -175,12 +154,6 @@ class AdminProductoImagenAgregarMovilView(APIView):
 
 
 class AdminProductoImagenReordenarMovilView(APIView):
-    """
-    POST /apimovil/admin/productos/imagenes/reordenar/
-    Body JSON:
-      - id_imagen
-      - orden
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -191,11 +164,6 @@ class AdminProductoImagenReordenarMovilView(APIView):
 
 
 class AdminProductoImagenBorrarMovilView(APIView):
-    """
-    POST /apimovil/admin/productos/imagenes/borrar/
-    Body JSON:
-      - id_imagen
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -209,10 +177,6 @@ class AdminProductoImagenBorrarMovilView(APIView):
 
 
 class AdminProductoImagenArchivoMovilView(APIView):
-    """
-    GET /apimovil/admin/productos/imagenes/archivo/<id_imagen>/
-    Devuelve el archivo binario de la imagen.
-    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk: int, *args, **kwargs):

@@ -28,10 +28,6 @@ def _fmt_dt(dt: datetime | None) -> str | None:
 
 @require_http_methods(["GET"])
 def api_detalle_producto(request, producto_id: int):
-    """
-    GET /apimovil/productos/<id>/
-      -> JSON con detalle del producto + comentarios
-    """
     # si hay usuario logueado, obtén su id para saldo_cliente y mostrar_acciones
     cliente_id = request.session.get("usuario_id")
 
@@ -96,15 +92,6 @@ def api_detalle_producto(request, producto_id: int):
 
 @require_http_methods(["GET"])
 def descargar_producto_movil_view(request, producto_id: int):
-    """
-    GET /apimovil/productos/<producto_id>/descargar/
-
-    Requisitos:
-      - Debe existir usuario_id en sesión (login móvil hecho).
-      - Ese usuario debe haber comprado el producto.
-
-    Responde con el archivo binario.
-    """
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:
         return HttpResponseForbidden("Debe iniciar sesión para descargar este producto.")

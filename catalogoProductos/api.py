@@ -11,16 +11,6 @@ MOBILE_PER_PAGE = 6
 
 @require_http_methods(["GET"])
 def api_listar_productos_movil(request):
-    """
-    GET /apimovil/catalogo/?page=1&nombre=...&autor=...&categoria=...
-    Respuesta:
-    {
-      "ok": true,
-      "rows": [...],
-      "page": 1,
-      "total_pages": 5
-    }
-    """
     val = serial.catalogoProductosSerializer(data={
         "nombre": (request.GET.get("nombre") or "").strip(),
         "autor": (request.GET.get("autor") or "").strip(),
@@ -29,7 +19,7 @@ def api_listar_productos_movil(request):
     })
 
     if not val.is_valid():
-        return JsonResponse({"ok": False, "errors": val.errors}, status=400)
+        return JsonResponse({"ok": False, "errors": val.errors[next(iter(val.errors))][0]}, status=400)
 
     filas, total_pages = val.listar(per_page=MOBILE_PER_PAGE)
     return JsonResponse(
@@ -45,10 +35,6 @@ def api_listar_productos_movil(request):
 
 @require_http_methods(["GET"])
 def api_imagen_producto_movil(request, id_imagen: int):
-    """
-    GET /apimovil/catalogo/imagen/<id_imagen>/
-    Devuelve los bytes de la imagen.
-    """
     from core.models import ImagenProducto
     import magic
 

@@ -15,10 +15,6 @@ from core.utils import PER_PAGE
 
 
 class AdminUsuariosListMovilView(APIView):
-    """
-    GET /apimovil/admin/usuarios/?page=1&id=&nombre=&saldo=
-    Listado paginado de usuarios (no exclientes).
-    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
@@ -46,10 +42,6 @@ class AdminUsuariosListMovilView(APIView):
 
 
 class AdminUsuarioDetalleMovilView(APIView):
-    """
-    GET /apimovil/admin/usuarios/detalle/<id_usuario>/
-    Devuelve detalle de usuario (id, nombre, correo, fecha, saldo)
-    """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, id_usuario: int, *args, **kwargs):
@@ -72,11 +64,6 @@ class AdminUsuarioDetalleMovilView(APIView):
 
 
 class AdminUsuarioGuardarMovilView(APIView):
-    """
-    POST /apimovil/admin/usuarios/guardar/
-    Body JSON: { "id": int, "saldo": "100.50" }
-    Actualiza saldo de un usuario.
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -95,11 +82,6 @@ class AdminUsuarioGuardarMovilView(APIView):
 
 
 class AdminUsuarioEliminarMovilView(APIView):
-    """
-    POST /apimovil/admin/usuarios/eliminar/
-    Body JSON: { "id_usuario": int }
-    Marca excliente=TRUE.
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):

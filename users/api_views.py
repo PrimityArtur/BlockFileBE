@@ -238,11 +238,10 @@ class AdminProfileMovilView(APIView):
     def post(self, request, *args, **kwargs):
         ser = AdminProfileSerializer(data=request.data)
         if not ser.is_valid():
-            return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(ser.errors[next(iter(ser.errors))][0], status=status.HTTP_400_BAD_REQUEST)
 
         data = ser.validated_data
         usuario_id = data["id_usuario"]
-        print(data)
         try:
             usuario_actualizado = serv.actualizar_datos_administrador(
                 usuario_id=usuario_id,

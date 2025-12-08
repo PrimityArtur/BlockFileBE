@@ -56,7 +56,7 @@ def api_actualizar_perfil_cliente(request):
 
     ser = PerfilClienteSerializer(data=data, context={"usuario_id": usuario_id})
     if not ser.is_valid():
-        return JsonResponse(ser.errors[next(iter(ser.errors))][0], status=400)
+        return JsonResponse({ser.errors[next(iter(ser.errors))][0]}, status=400)
 
     v = ser.validated_data
     with transaction.atomic():

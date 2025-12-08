@@ -177,7 +177,7 @@ class RegisterMovilView(APIView):
             request.session["usuario_contrasena"] = usuario.contrasena
 
             return Response(data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors[next(iter(serializer.errors))][0], status=status.HTTP_400_BAD_REQUEST)
 
 
 # ============================================================
@@ -251,7 +251,7 @@ class AdminProfileMovilView(APIView):
                 contrasena=data["contrasena"],
             )
         except serv.DomainError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
         out_ser = AdminProfileSerializer()
         out_data = out_ser.to_representation(usuario_actualizado)
